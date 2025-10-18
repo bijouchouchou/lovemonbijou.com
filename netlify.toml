@@ -9,6 +9,7 @@
 [functions."stripe-webhook"]
   included_files = ["netlify/functions/stripe-webhook.js"]
   node_bundler = "esbuild"
+
   # Empêche Netlify de parser le body (Stripe a besoin du corps brut)
-  [functions."stripe-webhook"].event_source
+  [functions."stripe-webhook".event_source]
     rawBody = true
