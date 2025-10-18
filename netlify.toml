@@ -2,14 +2,20 @@
   command = ""
   publish = "."
 
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Content-Type = "text/html; charset=UTF-8"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Content-Type = "text/html; charset=UTF-8"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 [functions]
   directory = "netlify/functions"
-
-# Configuration spécifique pour la fonction Stripe webhook
-[functions."stripe-webhook"]
-  included_files = ["netlify/functions/stripe-webhook.js"]
-  node_bundler = "esbuild"
-
-  # Empêche Netlify de parser le body (Stripe a besoin du corps brut)
-  [functions."stripe-webhook".event_source]
-    rawBody = true
