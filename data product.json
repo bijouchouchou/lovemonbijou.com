@@ -1,0 +1,20 @@
+[
+  {
+    "id": "bracelet",
+    "name": "Bracelet Élégance",
+    "price": 49,
+    "currency": "eur",
+    "images": ["https://via.placeholder.com/300x300?text=Bracelet"],
+    "description": "Bracelet artisanal doré à la main.",
+    "sizes": ["S", "M", "L"]
+  },
+  {
+    "id": "bague",
+    "name": "Bague or",
+    "price": 39,
+    "currency": "eur",
+    "images": ["https://via.placeholder.com/300x300?text=Bague"],
+    "description": "Bague en plaqué or 18 carats.",
+    "sizes": ["48","50","52","54","56"]
+  }
+]
