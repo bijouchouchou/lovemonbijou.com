@@ -2,11 +2,50 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Catalogue - Bijouterie Élégance</title>
     <style>
-        nav { padding: 15px; background: #f8f9fa; text-align: center; border-bottom: 2px solid #e9ecef; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
-        nav a { margin: 0 15px; text-decoration: none; color: #495057; font-weight: bold; }
-        .content { margin-top: 60px; padding: 20px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #fafafa; 
+            margin: 0; 
+        }
+        nav { 
+            padding: 15px; 
+            background: #f8f9fa; 
+            text-align: center; 
+            border-bottom: 2px solid #e9ecef; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 1000; 
+        }
+        nav a { 
+            margin: 0 15px; 
+            text-decoration: none; 
+            color: #495057; 
+            font-weight: bold; 
+        }
+        .content { 
+            margin-top: 60px; 
+            padding: 20px; 
+            text-align: center;
+        }
+        .products {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .product {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            width: 250px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -17,10 +56,32 @@
         <a href="success.html">Confirmation</a>
         <a href="cancel.html">Annulation</a>
     </nav>
+    
     <div class="content">
-        <h1>Notre Catalogue</h1>
-        <p>Découvrez notre collection de bijoux.</p>
-        <!-- Vous pourrez ajouter vos produits ici plus tard -->
+        <h1>📚 Notre Catalogue</h1>
+        <p>Découvrez notre magnifique collection de bijoux personnalisés.</p>
+        
+        <div class="products">
+            <div class="product">
+                <h3>Bague Élégance</h3>
+                <p>Bague en argent avec pierre précieuse</p>
+                <p><strong>89€</strong></p>
+            </div>
+            <div class="product">
+                <h3>Collier Perle</h3>
+                <p>Collier avec perle naturelle</p>
+                <p><strong>120€</strong></p>
+            </div>
+            <div class="product">
+                <h3>Bracelet Argent</h3>
+                <p>Bracelet en argent massif</p>
+                <p><strong>65€</strong></p>
+            </div>
+        </div>
+        
+        <p style="margin-top: 30px;">
+            <em>Notre catalogue complet arrive bientôt !</em>
+        </p>
     </div>
 </body>
 </html>
