@@ -1,28 +1,239 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   <title>Bijouterie Élégance</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://js.stripe.com/v3/"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #fafafa; padding: 1.5rem; }
-    header { text-align: center; margin-bottom: 1rem; }
-    nav a { margin: 0 10px; text-decoration: none; color: #333; }
-    .promo { background: #fff3ff; padding: 12px; border-radius: 8px; margin: 0 auto 1rem; max-width: 900px; text-align:center;}
-    .products { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
-    .product { background: white; padding: 12px; border-radius: 10px; width: 260px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
-    .cart { margin-top: 1rem; background: white; padding: 12px; border-radius: 10px; max-width: 900px; margin-left: auto; margin-right: auto; }
-    button { background: #635bff; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
-    form.newsletter { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
-    input[type="email"] { padding: 8px; border-radius: 6px; border: 1px solid #ddd; }
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #fafafa; 
+      padding: 1.5rem; 
+      margin: 0; 
+    }
+    
+    /* Menu fixe */
+    nav { 
+      padding: 15px; 
+      background: #f8f9fa; 
+      text-align: center; 
+      border-bottom: 2px solid #e9ecef; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      right: 0; 
+      z-index: 1000; 
+    }
+    
+    nav a { 
+      margin: 0 15px; 
+      text-decoration: none; 
+      color: #495057; 
+      font-weight: bold; 
+    }
+    
+    /* Contenu */
+    .content { 
+      margin-top: 60px; 
+    }
+    
+    header { 
+      text-align: center; 
+      margin-bottom: 1rem; 
+    }
+    
+    .promo { 
+      background: #fff3ff; 
+      padding: 12px; 
+      border-radius: 8px; 
+      margin: 0 auto 1rem; 
+      max-width: 900px; 
+      text-align: center;
+    }
+    
+    .products { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 1rem; 
+      justify-content: center; 
+    }
+    
+    .product { 
+      background: white; 
+      padding: 12px; 
+      border-radius: 10px; 
+      width: 260px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
+      text-align: center; 
+    }
+    
+    .cart { 
+      margin-top: 1rem; 
+      background: white; 
+      padding: 12px; 
+      border-radius: 10px; 
+      max-width: 900px; 
+      margin-left: auto; 
+      margin-right: auto; 
+    }
+    
+    button { 
+      background: #635bff; 
+      color: white; 
+      border: none; 
+      padding: 8px 12px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+    }
+    
+    form.newsletter { 
+      display: flex; 
+      gap: 8px; 
+      justify-content: center; 
+      margin-top: 12px; 
+    }
+    
+    input[type="email"] { 
+      padding: 8px; 
+      border-radius: 6px; 
+      border: 1px solid #ddd; 
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Bijouterie Élégance 💎</h1>
-    <nav>
-      <a href="/">Accueil</a> |
-      <a href="/fabrication.html">Fabrication</a>
-    </nav>
-  </header>
+  <!-- Menu de navigation -->
+  <nav>
+    <a href="index.html">Accueil</a>
+    <a href="fabrication.html">Fabrication</a>
+    <a href="catalogue.html">Catalogue</a>
+    <a href="success.html">Confirmation</a>
+    <a href="cancel.html">Annulation</a>
+  </nav>
+
+  <div class="content">
+    <header>
+      <h1>Bijouterie Élégance 💎</h1>
+    </header>
+
+    <div id="promo" class="promo" style="display:none"></div>
+
+    <section>
+      <h2 style="text-align:center;">Nos bijoux</h2>
+      <div id="products" class="products"></div>
+    </section>
+
+    <section class="cart">
+      <h2>Mon panier</h2>
+      <div id="cartItems">Votre panier est vide.</div>
+      <p>Sous-total : <span id="subtotal">0.00</span> €</p>
+      <p>Frais de livraison : <span id="shipping">5.00</span> €</p>
+      <h3>Total : <span id="total">0.00</span> €</h3>
+      <button id="checkout" disabled>Payer</button>
+
+      <div style="margin-top:18px;text-align:center">
+        <h3>Inscrivez-vous à la newsletter</h3>
+        <form name="newsletter" method="POST" data-netlify="true" class="newsletter">
+          <input type="hidden" name="form-name" value="newsletter" />
+          <input type="email" name="email" placeholder="votre@email" required />
+          <button type="submit">S'inscrire</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const stripe = Stripe("pk_test_PASTE_YOUR_PUBLISHABLE_KEY");
+    const shippingFee = 5.0;
+    let products = [];
+    const cart = [];
+
+    async function fetchProducts(){
+      const r = await fetch('/data/products.json');
+      products = await r.json();
+      renderProducts();
+      loadPromo();
+    }
+
+    function renderProducts(){
+      const container = document.getElementById('products');
+      container.innerHTML = '';
+      products.forEach(p=>{
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.innerHTML = `
+          <h3>${p.name}</h3>
+          <img src="${p.images[0]}" alt="${p.name}" style="max-width:100%;height:150px;object-fit:cover;border-radius:6px"/>
+          <p>${p.description}</p>
+          <p><strong>${p.price.toFixed(2)} €</strong></p>
+          <label>Taille:
+            <select>${p.sizes.map(s=>`<option value="${s}">${s}</option>`).join('')}</select>
+          </label><br/>
+          <label>Réf: <input type="text" placeholder="ex: REF-${p.id.toUpperCase()}" /></label><br/>
+          <button data-id="${p.id}">Ajouter</button>
+        `;
+        container.appendChild(div);
+      });
+
+      document.querySelectorAll('.product button').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          const el = e.target.closest('.product');
+          const id = btn.dataset.id;
+          const prod = products.find(x=>x.id===id);
+          const size = el.querySelector('select').value;
+          const ref = el.querySelector('input').value;
+          const existing = cart.find(i=>i.id===id && i.size===size && i.ref===ref);
+          if(existing) existing.quantity++;
+          else cart.push({ id, name: prod.name, price: prod.price, size, ref, quantity:1 });
+          updateCartUI();
+        });
+      });
+    }
+
+    function updateCartUI(){
+      const el = document.getElementById('cartItems');
+      if(!cart.length){
+        el.innerHTML='Votre panier est vide.';
+        document.getElementById('checkout').disabled=true;
+      } else {
+        el.innerHTML = cart.map((i, idx)=>
+          `<div><strong>${i.name}</strong> (${i.size}) Réf:${i.ref||'–'} ×${i.quantity}
+          <button data-idx="${idx}">Retirer</button></div>`
+        ).join('');
+        document.querySelectorAll('#cartItems button').forEach(b=>{
+          b.addEventListener('click', e=>{
+            cart.splice(e.target.dataset.idx,1);
+            updateCartUI();
+          });
+        });
+      }
+      const subtotal = cart.reduce((s,i)=>s+i.price*i.quantity,0);
+      document.getElementById('subtotal').textContent=subtotal.toFixed(2);
+      document.getElementById('total').textContent=(subtotal+(cart.length?shippingFee:0)).toFixed(2);
+      document.getElementById('checkout').disabled=!cart.length;
+    }
+
+    document.getElementById('checkout').addEventListener('click', async ()=>{
+      const res = await fetch('/.netlify/functions/create-checkout-session',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({cart, shippingFee})
+      });
+      const body = await res.json();
+      stripe.redirectToCheckout({ sessionId: body.id });
+    });
+
+    async function loadPromo(){
+      const r = await fetch('/data/promo.json');
+      const promo = await r.json();
+      if(promo.enabled){
+        const el=document.getElementById('promo');
+        el.style.display='block';
+        el.innerHTML=`<strong>${promo.message}</strong>`;
+      }
+    }
+
+    fetchProducts();
+  </script>
+</body>
+</html>
