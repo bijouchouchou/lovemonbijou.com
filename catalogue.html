@@ -544,20 +544,21 @@
         alert(message);
     }
 
-    // Écouteurs d'événements pour les filtres
-
-    // CORRECTION : Attendre que le DOM soit chargé
     document.addEventListener('DOMContentLoaded', function() {
-        // Écouteurs d'événements pour les filtres
-        document.getElementById('type-filter').addEventListener('change', filterProducts);
-        document.getElementById('metal-filter').addEventListener('change', filterProducts);
-        document.getElementById('pierre-filter').addEventListener('change', filterProducts);
-        document.getElementById('price-filter').addEventListener('change', filterProducts);
+    // Écouteurs d'événements pour les filtres
+    const typeFilter = document.getElementById('type-filter');
+    const metalFilter = document.getElementById('metal-filter');
+    const pierreFilter = document.getElementById('pierre-filter');
+    const priceFilter = document.getElementById('price-filter');
 
-        // Charger les produits au démarrage
-        loadProductsFromGoogleSheets();
-    });
-</script>
+    if (typeFilter) typeFilter.addEventListener('change', filterProducts);
+    if (metalFilter) metalFilter.addEventListener('change', filterProducts);
+    if (pierreFilter) pierreFilter.addEventListener('change', filterProducts);
+    if (priceFilter) priceFilter.addEventListener('change', filterProducts);
 
+    // Charger les produits au démarrage
+    loadProductsFromGoogleSheets();
+});
+ </script>
 </body>
 </html>
