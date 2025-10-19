@@ -30,6 +30,7 @@
               <th>Quantités par taille</th>
               <th>Prix (€)</th>
               <th>Taille</th>
+              <th>Quantité</th>
               <th>Commande</th>
           </tr>
       </thead>
@@ -81,26 +82,28 @@
   function parseSizes(sizesField) {
       if (!sizesField) return [];
       try {
-          return JSON.parse(sizesField); // Renvoie un tableau [{size, quantity}, ...]
+          return JSON.parse(sizesField); // [{size, quantity}, ...]
       } catch (err) {
           console.warn('Impossible de parser les tailles:', sizesField);
           return [];
       }
   }
 
-  function addToCart(reference, selectedSize) {
+  function addToCart(reference, selectedSize, quantity) {
       const product = products.find(p => p.reference === reference);
       if (!product) return alert('Produit introuvable');
       if (!selectedSize) return alert('Veuillez sélectionner une taille.');
+      if (!quantity || quantity < 1) return alert('Veuillez sélectionner une quantité valide.');
 
       cart.push({
           reference: product.reference,
           titre: product.titre,
           prix: product.prix,
-          taille: selectedSize
+          taille: selectedSize,
+          quantity: parseInt(quantity, 10)
       });
       localStorage.setItem('cart', JSON.stringify(cart));
-      alert(`Produit "${product.titre}" (${selectedSize}) ajouté au panier !`);
+      alert(`Produit "${product.titre}" (${selectedSize}) x${quantity} ajouté au panier !`);
   }
 
   function populateTable() {
@@ -119,7 +122,7 @@
       if (priceSort === 'desc') filtered.sort((a,b) => b.prix - a.prix);
 
       filtered.forEach(p => {
-          const sizesArray = parseSizes(p.autre_pierre); // [{size, quantity}, ...]
+          const sizesArray = parseSizes(p.autre_pierre);
           const sizeOptions = sizesArray.map(s => 
               `<option value="${s.size}">${s.size} (${s.quantity})</option>`
           ).join('');
@@ -138,15 +141,19 @@
                       ${sizeOptions}
                   </select>
               </td>
+              <td>
+                  <input type="number" class="qtyInput" min="1" value="1" style="width:50px">
+              </td>
               <td><button class="orderBtn">Commander</button></td>
           `;
           tbody.appendChild(tr);
 
-          // Ajouter l'événement pour le bouton Commander
           const btn = tr.querySelector('.orderBtn');
           const select = tr.querySelector('.sizeSelect');
+          const qtyInput = tr.querySelector('.qtyInput');
+
           btn.addEventListener('click', () => {
-              addToCart(p.reference, select.value);
+              addToCart(p.reference, select.value, qtyInput.value);
           });
       });
   }
