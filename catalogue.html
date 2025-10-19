@@ -283,215 +283,277 @@
     </div>
 
     <script>
-        // Tailles disponibles pour les bagues
-        const availableSizes = [48, 50, 52, 54, 56, 58, 60];
+       <script>
+    // Configuration Google Sheets - VOTRE ID
+    const SHEET_ID = '1TFPt61HeN0sqxFCYaBHhJY5WELXc2fpjDiLLMPhbWaCK7Q7dW8Qk6QhjqMNtAX_wYpIT_6tfSm3NWO';
+    const API_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
 
-        // Données des produits
-        const products = [
-            {
-                id: 1,
-                title: "Bague Élégance",
-                type: "Bague",
-                metal: "Argent",
-                price: 89,
-                description: "Bague en argent avec pierre précieuse naturelle",
-                image: "💍",
-                availableSizes: [48, 50, 52, 54, 56], // Tailles disponibles
-                defaultSize: 52 // Taille par défaut
-            },
-            {
-                id: 2,
-                title: "Collier Perle Naturelle",
-                type: "Collier",
-                metal: "Or",
-                price: 120,
-                description: "Collier avec perle naturelle et chaîne en or",
-                image: "📿",
-                // Pas de tailles pour les colliers
-            },
-            {
-                id: 3,
-                title: "Bracelet Argent Massif",
-                type: "Bracelet",
-                metal: "Argent",
-                price: 65,
-                description: "Bracelet en argent massif, design moderne",
-                image: "📿",
-                // Pas de tailles pour les bracelets standard
-            },
-            {
-                id: 4,
-                title: "Boucles d'oreilles Or Rose",
-                type: "Boucles d'oreilles",
-                metal: "Or rose",
-                price: 45,
-                description: "Boucles d'oreilles en or rose avec zirconium",
-                image: "👂",
-            },
-            {
-                id: 5,
-                title: "Bague Alliance Or",
-                type: "Bague",
-                metal: "Or",
-                price: 150,
-                description: "Bague alliance en or jaune 18 carats",
-                image: "💍",
-                availableSizes: [50, 52, 54, 56, 58, 60],
-                defaultSize: 54
-            },
-            {
-                id: 6,
-                title: "Bague Platine Étoile",
-                type: "Bague",
-                metal: "Platine",
-                price: 220,
-                description: "Bague en platine avec motif étoile élégant",
-                image: "💍",
-                availableSizes: [48, 50, 52, 54],
-                defaultSize: 50
-            }
-        ];
+    // Tailles disponibles pour les bagues
+    const availableSizes = [48, 50, 52, 54, 56, 58, 60];
 
-        // Stockage des sélections de taille par produit
-        const selectedSizes = {};
+    // Stockage des produits et sélections
+    let products = [];
+    const selectedSizes = {};
 
-        // Fonction pour afficher les produits
-        function displayProducts(productsToShow) {
-            const grid = document.getElementById('products-grid');
+    // Charger les données depuis Google Sheets
+    async function loadProductsFromGoogleSheets() {
+        try {
+            const response = await fetch(API_URL);
+            const csvText = await response.text();
+            products = parseCSV(csvText);
+            populateFilterOptions();
+            displayProducts(products);
+        } catch (error) {
+            console.error('Erreur lors du chargement des produits:', error);
+            document.getElementById('products-grid').innerHTML = 
+                '<div class="no-products">Erreur de chargement du catalogue. Veuillez réessayer plus tard.</div>';
+        }
+    }
+
+    // Parser le CSV selon VOTRE structure
+    function parseCSV(csvText) {
+        const lines = csvText.split('\n').filter(line => line.trim() !== '');
+        if (lines.length === 0) return [];
+        
+        const headers = lines[0].split(',').map(header => header.trim().toLowerCase());
+        
+        return lines.slice(1).map((line, index) => {
+            const values = line.split(',').map(value => value.trim());
+            const product = { id: index + 1 };
             
-            if (productsToShow.length === 0) {
-                grid.innerHTML = '<div class="no-products">Aucun produit ne correspond à vos critères de recherche.</div>';
-                return;
-            }
-            
-            grid.innerHTML = productsToShow.map(product => {
-                // Initialiser la taille sélectionnée pour ce produit
-                if (!selectedSizes[product.id]) {
-                    selectedSizes[product.id] = product.defaultSize || (product.availableSizes ? product.availableSizes[0] : null);
+            headers.forEach((header, i) => {
+                const value = values[i] || '';
+                
+                switch(header) {
+                    case 'reference':
+                        product.reference = value;
+                        break;
+                    case 'description':
+                        product.description = value;
+                        break;
+                    case 'image':
+                        product.image = value;
+                        break;
+                    case 'couleur':
+                        product.couleur = value;
+                        break;
+                    case 'titre':
+                        product.titre = value;
+                        break;
+                    case 'poids':
+                        product.poids = value;
+                        break;
+                    case 'or':
+                        product.or = value;
+                        break;
+                    case 'type de pierres':
+                        product.pierres = value;
+                        break;
+                    case 'type de bijou':
+                        product.type = value;
+                        break;
+                    case 'tailles disponibles':
+                        product.availableSizes = value ? value.split(',').map(size => parseInt(size.trim())) : [];
+                        break;
+                    case 'quantité par taille':
+                        product.quantiteParTaille = value;
+                        break;
+                    case 'prix':
+                        const cleanPrice = value.replace('€', '').replace(/\s/g, '').replace(',', '.');
+                        product.prix = parseFloat(cleanPrice) || 0;
+                        break;
+                    default:
+                        product[header] = value;
                 }
-                
-                const hasSizes = product.availableSizes && product.availableSizes.length > 0;
-                const selectedSize = selectedSizes[product.id];
-                const canOrder = !hasSizes || selectedSize;
-                
-                return `
-                    <div class="product-card">
-                        <div class="product-image">
-                            ${product.image}
-                            <span>Image du produit</span>
-                        </div>
-                        <div class="product-info">
-                            <div class="product-title">${product.title}</div>
-                            <div class="product-meta">
-                                <span class="product-type">${product.type}</span>
-                                <span class="product-metal">${product.metal}</span>
-                            </div>
-                            <div class="product-price">${product.price}€</div>
-                            <div class="product-description">${product.description}</div>
-                            
-                            ${hasSizes ? `
-                                <div class="size-selection">
-                                    <label class="size-label">Taille de bague :</label>
-                                    <div class="size-options">
-                                        ${availableSizes.map(size => `
-                                            <div class="size-option ${product.availableSizes.includes(size) ? '' : 'unavailable'} ${selectedSize === size ? 'selected' : ''}" 
-                                                 onclick="selectSize(${product.id}, ${size})" 
-                                                 ${!product.availableSizes.includes(size) ? 'style="cursor: not-allowed;"' : ''}>
-                                                ${size}
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            ` : ''}
-                            
-                            <div class="product-actions">
-                                <button class="add-to-cart" onclick="addToCart(${product.id})">
-                                    Ajouter au panier
-                                </button>
-                                <button class="order-btn" ${!canOrder ? 'disabled' : ''} onclick="orderProduct(${product.id})">
-                                    Commander
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Fonction pour sélectionner une taille
-        function selectSize(productId, size) {
-            const product = products.find(p => p.id === productId);
-            if (product && product.availableSizes && product.availableSizes.includes(size)) {
-                selectedSizes[productId] = size;
-                displayProducts(products); // Re-render pour mettre à jour l'affichage
-            }
-        }
-
-        // Fonction pour commander un produit
-        function orderProduct(productId) {
-            const product = products.find(p => p.id === productId);
-            const selectedSize = selectedSizes[productId];
-            
-            // Préparer les paramètres pour la page de commande
-            let params = `productId=${productId}`;
-            if (selectedSize) {
-                params += `&taille=${selectedSize}`;
-            }
-            if (product) {
-                params += `&produit=${encodeURIComponent(product.title)}`;
-                params += `&prix=${product.price}`;
-            }
-            
-            // Redirection vers la page de commande
-            window.location.href = `commande.html?${params}`;
-        }
-
-        // Fonction pour filtrer les produits
-        function filterProducts() {
-            const typeFilter = document.getElementById('type-filter').value;
-            const metalFilter = document.getElementById('metal-filter').value;
-            const priceFilter = document.getElementById('price-filter').value;
-            
-            const filteredProducts = products.filter(product => {
-                const typeMatch = !typeFilter || product.type === typeFilter;
-                const metalMatch = !metalFilter || product.metal === metalFilter;
-                const priceMatch = !priceFilter || product.price <= parseInt(priceFilter);
-                
-                return typeMatch && metalMatch && priceMatch;
             });
             
-            displayProducts(filteredProducts);
-        }
+            return product;
+        }).filter(product => product.titre && product.prix > 0);
+    }
 
-        // Fonction pour réinitialiser les filtres
-        function resetFilters() {
-            document.getElementById('type-filter').value = '';
-            document.getElementById('metal-filter').value = '';
-            document.getElementById('price-filter').value = '';
-            displayProducts(products);
-        }
+    // Remplir les options de filtres dynamiquement
+    function populateFilterOptions() {
+        const types = [...new Set(products.map(p => p.type).filter(Boolean))];
+        const couleurs = [...new Set(products.map(p => p.couleur).filter(Boolean))];
+        const pierres = [...new Set(products.map(p => p.pierres).filter(Boolean))];
+        
+        const typeFilter = document.getElementById('type-filter');
+        const metalFilter = document.getElementById('metal-filter');
+        const pierreFilter = document.getElementById('pierre-filter');
+        
+        // Ajouter les types
+        types.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            typeFilter.appendChild(option);
+        });
+        
+        // Ajouter les couleurs/métaux
+        couleurs.forEach(couleur => {
+            const option = document.createElement('option');
+            option.value = couleur;
+            option.textContent = couleur;
+            metalFilter.appendChild(option);
+        });
+        
+        // Ajouter les types de pierres
+        pierres.forEach(pierre => {
+            const option = document.createElement('option');
+            option.value = pierre;
+            option.textContent = pierre;
+            pierreFilter.appendChild(option);
+        });
+    }
 
-        // Fonction pour ajouter au panier
-        function addToCart(productId) {
-            const product = products.find(p => p.id === productId);
-            const selectedSize = selectedSizes[productId];
-            
-            let message = `Produit "${product.title}" ajouté au panier !`;
-            if (selectedSize) {
-                message += ` Taille : ${selectedSize}`;
+    // Fonction pour afficher les produits
+    function displayProducts(productsToShow) {
+        const grid = document.getElementById('products-grid');
+        
+        if (productsToShow.length === 0) {
+            grid.innerHTML = '<div class="no-products">Aucun produit ne correspond à vos critères de recherche.</div>';
+            return;
+        }
+        
+        grid.innerHTML = productsToShow.map(product => {
+            // Initialiser la taille sélectionnée pour ce produit
+            if (!selectedSizes[product.id]) {
+                selectedSizes[product.id] = product.availableSizes ? product.availableSizes[0] : null;
             }
             
-            alert(message);
-            // Ici vous ajouterez la logique du panier
+            const hasSizes = product.availableSizes && product.availableSizes.length > 0;
+            const selectedSize = selectedSizes[product.id];
+            const canOrder = !hasSizes || selectedSize;
+            
+            return `
+                <div class="product-card">
+                    <div class="product-image" style="background-image: url('${product.image || ''}')">
+                        ${!product.image ? '🖼️ Image du produit' : ''}
+                    </div>
+                    <div class="product-info">
+                        <div class="reference">Ref: ${product.reference || 'N/A'}</div>
+                        <div class="product-title">${product.titre || 'Sans titre'}</div>
+                        <div class="product-meta">
+                            <span class="product-type">${product.type || 'Bijou'}</span>
+                            <span class="product-metal">${product.couleur || ''}</span>
+                        </div>
+                        <div class="product-price">${product.prix || 0}€</div>
+                        
+                        <div class="product-details">
+                            ${product.description ? `<div>${product.description}</div>` : ''}
+                            ${product.poids ? `<div class="detail-row"><span>Poids:</span> <span>${product.poids}</span></div>` : ''}
+                            ${product.or ? `<div class="detail-row"><span>Or:</span> <span>${product.or}</span></div>` : ''}
+                            ${product.pierres ? `<div class="detail-row"><span>Pierres:</span> <span>${product.pierres}</span></div>` : ''}
+                        </div>
+                        
+                        ${hasSizes ? `
+                            <div class="size-selection">
+                                <label class="size-label">Taille de bague :</label>
+                                <div class="size-options">
+                                    ${availableSizes.map(size => `
+                                        <div class="size-option ${product.availableSizes.includes(size) ? '' : 'unavailable'} ${selectedSize === size ? 'selected' : ''}" 
+                                             onclick="selectSize(${product.id}, ${size})" 
+                                             ${!product.availableSizes.includes(size) ? 'style="cursor: not-allowed;"' : ''}>
+                                            ${size}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="product-actions">
+                            <button class="add-to-cart" onclick="addToCart(${product.id})">
+                                Ajouter au panier
+                            </button>
+                            <button class="order-btn" ${!canOrder ? 'disabled' : ''} onclick="orderProduct(${product.id})">
+                                Commander
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Fonction pour sélectionner une taille
+    function selectSize(productId, size) {
+        const product = products.find(p => p.id === productId);
+        if (product && product.availableSizes && product.availableSizes.includes(size)) {
+            selectedSizes[productId] = size;
+            displayProducts(products); // Re-render pour mettre à jour l'affichage
         }
+    }
 
-        // Écouteurs d'événements pour les filtres
-        document.getElementById('type-filter').addEventListener('change', filterProducts);
-        document.getElementById('metal-filter').addEventListener('change', filterProducts);
-        document.getElementById('price-filter').addEventListener('change', filterProducts);
+    // Fonction pour commander un produit
+    function orderProduct(productId) {
+        const product = products.find(p => p.id === productId);
+        const selectedSize = selectedSizes[productId];
+        
+        // Préparer les paramètres pour la page de commande
+        let params = `productId=${productId}`;
+        if (selectedSize) {
+            params += `&taille=${selectedSize}`;
+        }
+        if (product) {
+            params += `&reference=${encodeURIComponent(product.reference || '')}`;
+            params += `&produit=${encodeURIComponent(product.titre || '')}`;
+            params += `&prix=${product.prix || 0}`;
+        }
+        
+        // Redirection vers la page de commande
+        window.location.href = `commande.html?${params}`;
+    }
 
-        // Afficher tous les produits au chargement
+    // Fonction pour filtrer les produits
+    function filterProducts() {
+        const typeFilter = document.getElementById('type-filter').value;
+        const metalFilter = document.getElementById('metal-filter').value;
+        const pierreFilter = document.getElementById('pierre-filter').value;
+        const priceFilter = document.getElementById('price-filter').value;
+        
+        const filteredProducts = products.filter(product => {
+            const typeMatch = !typeFilter || product.type === typeFilter;
+            const metalMatch = !metalFilter || product.couleur === metalFilter;
+            const pierreMatch = !pierreFilter || product.pierres === pierreFilter;
+            const priceMatch = !priceFilter || (product.prix && product.prix <= parseInt(priceFilter));
+            
+            return typeMatch && metalMatch && pierreMatch && priceMatch;
+        });
+        
+        displayProducts(filteredProducts);
+    }
+
+    // Fonction pour réinitialiser les filtres
+    function resetFilters() {
+        document.getElementById('type-filter').value = '';
+        document.getElementById('metal-filter').value = '';
+        document.getElementById('pierre-filter').value = '';
+        document.getElementById('price-filter').value = '';
         displayProducts(products);
+    }
+
+    // Fonction pour ajouter au panier
+    function addToCart(productId) {
+        const product = products.find(p => p.id === productId);
+        const selectedSize = selectedSizes[productId];
+        
+        let message = `Produit "${product.titre}" ajouté au panier !`;
+        if (selectedSize) {
+            message += ` Taille : ${selectedSize}`;
+        }
+        
+        alert(message);
+    }
+
+    // Écouteurs d'événements pour les filtres
+    document.getElementById('type-filter').addEventListener('change', filterProducts);
+    document.getElementById('metal-filter').addEventListener('change', filterProducts);
+    document.getElementById('pierre-filter').addEventListener('change', filterProducts);
+    document.getElementById('price-filter').addEventListener('change', filterProducts);
+
+    // Charger les produits au démarrage
+    loadProductsFromGoogleSheets();
+</script>
     </script>
 </body>
 </html>
