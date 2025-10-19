@@ -523,7 +523,6 @@
     }
 
     // Fonction pour réinitialiser les filtres
-        // Fonction pour réinitialiser les filtres
     function resetFilters() {
         document.getElementById('type-filter').value = '';
         document.getElementById('metal-filter').value = '';
@@ -545,20 +544,14 @@
         alert(message);
     }
 
-    // CORRECTION : Attendre que le DOM soit chargé avant d'ajouter les écouteurs
-    document.addEventListener('DOMContentLoaded', function() {
-        // Écouteurs d'événements pour les filtres
-        document.getElementById('type-filter').addEventListener('change', filterProducts);
-        document.getElementById('metal-filter').addEventListener('change', filterProducts);
-        document.getElementById('pierre-filter').addEventListener('change', filterProducts);
-        document.getElementById('price-filter').addEventListener('change', filterProducts);
-        
-        // Charger les produits après le chargement du DOM
-        loadProductsFromGoogleSheets();
-    });
+    // Écouteurs d'événements pour les filtres
+    document.getElementById('type-filter').addEventListener('change', filterProducts);
+    document.getElementById('metal-filter').addEventListener('change', filterProducts);
+    document.getElementById('pierre-filter').addEventListener('change', filterProducts);
+    document.getElementById('price-filter').addEventListener('change', filterProducts);
 
-    // SUPPRIMER cette ligne qui cause l'erreur :
-    // loadProductsFromGoogleSheets();
+    // Charger les produits au démarrage
+    loadProductsFromGoogleSheets();
 </script>
 
 </body>
