@@ -1,3 +1,5 @@
+# Créer un nouveau fichier avec le code garanti
+cat > catalogue_new.html << 'EOF'
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -104,15 +106,10 @@
         // Configuration Google Sheets
         const SHEET_ID = '1TFPt61HeN0sqxFCYaBHhJY5WELXc2fpjDiLLMPhbWaCK7Q7dW8Qk6QhjqMNtAX_wYpIT_6tfSm3NWO';
         const API_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
-
-        // Tailles disponibles pour les bagues
         const availableSizes = [48, 50, 52, 54, 56, 58, 60];
-
-        // Stockage des produits et sélections
         let products = [];
         const selectedSizes = {};
 
-        // Charger les données depuis Google Sheets
         async function loadProductsFromGoogleSheets() {
             try {
                 const response = await fetch(API_URL);
@@ -126,20 +123,15 @@
             }
         }
 
-        // Parser le CSV selon votre structure
         function parseCSV(csvText) {
             const lines = csvText.split('\n').filter(line => line.trim() !== '');
             if (lines.length === 0) return [];
-            
             const headers = lines[0].split(',').map(header => header.trim().toLowerCase());
-            
             return lines.slice(1).map((line, index) => {
                 const values = line.split(',').map(value => value.trim());
                 const product = { id: index + 1 };
-                
                 headers.forEach((header, i) => {
                     const value = values[i] || '';
-                    
                     switch(header) {
                         case 'reference': product.reference = value; break;
                         case 'description': product.description = value; break;
@@ -161,35 +153,29 @@
                         default: product[header] = value;
                     }
                 });
-                
                 return product;
             }).filter(product => product.titre && product.prix > 0);
         }
 
-        // Remplir les options de filtres dynamiquement
         function populateFilterOptions() {
             const types = [...new Set(products.map(p => p.type).filter(Boolean))];
             const couleurs = [...new Set(products.map(p => p.couleur).filter(Boolean))];
             const pierres = [...new Set(products.map(p => p.pierres).filter(Boolean))];
-            
             const typeFilter = document.getElementById('type-filter');
             const metalFilter = document.getElementById('metal-filter');
             const pierreFilter = document.getElementById('pierre-filter');
-            
             types.forEach(type => {
                 const option = document.createElement('option');
                 option.value = type;
                 option.textContent = type;
                 typeFilter.appendChild(option);
             });
-            
             couleurs.forEach(couleur => {
                 const option = document.createElement('option');
                 option.value = couleur;
                 option.textContent = couleur;
                 metalFilter.appendChild(option);
             });
-            
             pierres.forEach(pierre => {
                 const option = document.createElement('option');
                 option.value = pierre;
@@ -198,24 +184,19 @@
             });
         }
 
-        // Fonction pour afficher les produits
         function displayProducts(productsToShow) {
             const grid = document.getElementById('products-grid');
-            
             if (productsToShow.length === 0) {
                 grid.innerHTML = '<div class="no-products">Aucun produit ne correspond à vos critères de recherche.</div>';
                 return;
             }
-            
             grid.innerHTML = productsToShow.map(product => {
                 if (!selectedSizes[product.id]) {
                     selectedSizes[product.id] = product.availableSizes ? product.availableSizes[0] : null;
                 }
-                
                 const hasSizes = product.availableSizes && product.availableSizes.length > 0;
                 const selectedSize = selectedSizes[product.id];
                 const canOrder = !hasSizes || selectedSize;
-                
                 return `
                     <div class="product-card">
                         <div class="product-image" style="background-image: url('${product.image || ''}')">
@@ -229,14 +210,12 @@
                                 <span class="product-metal">${product.couleur || ''}</span>
                             </div>
                             <div class="product-price">${product.prix || 0}€</div>
-                            
                             <div class="product-details">
                                 ${product.description ? `<div>${product.description}</div>` : ''}
                                 ${product.poids ? `<div class="detail-row"><span>Poids:</span> <span>${product.poids}</span></div>` : ''}
                                 ${product.or ? `<div class="detail-row"><span>Or:</span> <span>${product.or}</span></div>` : ''}
                                 ${product.pierres ? `<div class="detail-row"><span>Pierres:</span> <span>${product.pierres}</span></div>` : ''}
                             </div>
-                            
                             ${hasSizes ? `
                                 <div class="size-selection">
                                     <label class="size-label">Taille de bague :</label>
@@ -251,7 +230,6 @@
                                     </div>
                                 </div>
                             ` : ''}
-                            
                             <div class="product-actions">
                                 <button class="add-to-cart" onclick="addToCart(${product.id})">Ajouter au panier</button>
                                 <button class="order-btn" ${!canOrder ? 'disabled' : ''} onclick="orderProduct(${product.id})">Commander</button>
@@ -262,7 +240,6 @@
             }).join('');
         }
 
-        // Fonction pour sélectionner une taille
         function selectSize(productId, size) {
             const product = products.find(p => p.id === productId);
             if (product && product.availableSizes && product.availableSizes.includes(size)) {
@@ -271,11 +248,9 @@
             }
         }
 
-        // Fonction pour commander un produit
         function orderProduct(productId) {
             const product = products.find(p => p.id === productId);
             const selectedSize = selectedSizes[productId];
-            
             let params = `productId=${productId}`;
             if (selectedSize) params += `&taille=${selectedSize}`;
             if (product) {
@@ -283,30 +258,24 @@
                 params += `&produit=${encodeURIComponent(product.titre || '')}`;
                 params += `&prix=${product.prix || 0}`;
             }
-            
             window.location.href = `commande.html?${params}`;
         }
 
-        // Fonction pour filtrer les produits
         function filterProducts() {
             const typeFilter = document.getElementById('type-filter').value;
             const metalFilter = document.getElementById('metal-filter').value;
             const pierreFilter = document.getElementById('pierre-filter').value;
             const priceFilter = document.getElementById('price-filter').value;
-            
             const filteredProducts = products.filter(product => {
                 const typeMatch = !typeFilter || product.type === typeFilter;
                 const metalMatch = !metalFilter || product.couleur === metalFilter;
                 const pierreMatch = !pierreFilter || product.pierres === pierreFilter;
                 const priceMatch = !priceFilter || (product.prix && product.prix <= parseInt(priceFilter));
-                
                 return typeMatch && metalMatch && pierreMatch && priceMatch;
             });
-            
             displayProducts(filteredProducts);
         }
 
-        // Fonction pour réinitialiser les filtres
         function resetFilters() {
             document.getElementById('type-filter').value = '';
             document.getElementById('metal-filter').value = '';
@@ -315,18 +284,14 @@
             displayProducts(products);
         }
 
-        // Fonction pour ajouter au panier
         function addToCart(productId) {
             const product = products.find(p => p.id === productId);
             const selectedSize = selectedSizes[productId];
-            
             let message = `Produit "${product.titre}" ajouté au panier !`;
             if (selectedSize) message += ` Taille : ${selectedSize}`;
-            
             alert(message);
         }
 
-        // CORRECTION : Attendre que le DOM soit chargé
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('type-filter').addEventListener('change', filterProducts);
             document.getElementById('metal-filter').addEventListener('change', filterProducts);
@@ -337,3 +302,11 @@
     </script>
 </body>
 </html>
+EOF
+
+# Remplacer l'ancien fichier
+mv catalogue_new.html catalogue.html
+
+# Vérifier les accolades
+grep -o "{" catalogue.html | wc -l
+grep -o "}" catalogue.html | wc -l
