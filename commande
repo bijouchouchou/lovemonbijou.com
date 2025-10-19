@@ -1,7 +1,6 @@
 <main>
   <h1>Catalogue Interactif avec Commande</h1>
 
-  <!-- Filtres et tri -->
   <div>
     <label for="typeSelect">Type de produit:</label>
     <select id="typeSelect">
@@ -21,7 +20,6 @@
     </select>
   </div>
 
-  <!-- Tableau du catalogue -->
   <table id="productTable">
       <thead>
           <tr>
@@ -39,24 +37,6 @@
       <tbody></tbody>
   </table>
 
-  <!-- Panier -->
-  <h2>Panier</h2>
-  <table id="cartTable">
-      <thead>
-          <tr>
-              <th>Titre</th>
-              <th>Taille</th>
-              <th>Quantité</th>
-              <th>Prix unitaire (€)</th>
-              <th>Total (€)</th>
-              <th>Supprimer</th>
-          </tr>
-      </thead>
-      <tbody></tbody>
-  </table>
-  <p id="cartTotal"><strong>Total général: 0 €</strong></p>
-  <button id="checkoutBtn">Valider la commande</button>
-
   <script>
   let products = [];
   let cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -69,14 +49,12 @@
 
           populateTypeDropdown();
           populateTable();
-          updateCart();
       } catch (err) {
           console.error(err);
           alert('Impossible de charger le catalogue. Vérifiez la console.');
       }
   }
 
-  // Remplissage des dropdowns
   function populateTypeDropdown() {
       const typeSelect = document.getElementById('typeSelect');
       const types = [...new Set(products.map(p => p.couleur))];
@@ -101,18 +79,16 @@
       });
   }
 
-  // Parsing des tailles
   function parseSizes(sizesField) {
       if (!sizesField) return [];
       try {
-          return JSON.parse(sizesField);
+          return JSON.parse(sizesField); // [{size, quantity}, ...]
       } catch (err) {
           console.warn('Impossible de parser les tailles:', sizesField);
           return [];
       }
   }
 
-  // Ajouter au panier
   function addToCart(reference, selectedSize, quantity) {
       const product = products.find(p => p.reference === reference);
       if (!product) return alert('Produit introuvable');
@@ -128,44 +104,8 @@
       });
       localStorage.setItem('cart', JSON.stringify(cart));
       alert(`Produit "${product.titre}" (${selectedSize}) x${quantity} ajouté au panier !`);
-      updateCart();
   }
 
-  // Supprimer un produit du panier
-  function removeFromCart(index) {
-      cart.splice(index, 1);
-      localStorage.setItem('cart', JSON.stringify(cart));
-      updateCart();
-  }
-
-  // Mettre à jour le panier
-  function updateCart() {
-      const tbody = document.querySelector('#cartTable tbody');
-      tbody.innerHTML = '';
-      let totalGeneral = 0;
-
-      cart.forEach((item, index) => {
-          const totalItem = item.prix * item.quantity;
-          totalGeneral += totalItem;
-
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-              <td>${item.titre}</td>
-              <td>${item.taille}</td>
-              <td>${item.quantity}</td>
-              <td>${item.prix.toFixed(2)}</td>
-              <td>${totalItem.toFixed(2)}</td>
-              <td><button class="removeBtn">Supprimer</button></td>
-          `;
-          tbody.appendChild(tr);
-
-          tr.querySelector('.removeBtn').addEventListener('click', () => removeFromCart(index));
-      });
-
-      document.getElementById('cartTotal').innerHTML = `<strong>Total général: ${totalGeneral.toFixed(2)} €</strong>`;
-  }
-
-  // Remplir le tableau du catalogue
   function populateTable() {
       const tbody = document.querySelector('#productTable tbody');
       tbody.innerHTML = '';
@@ -218,33 +158,6 @@
       });
   }
 
-  // Bouton valider la commande
-  document.getElementById('checkoutBtn').addEventListener('click', async () => {
-      if (cart.length === 0) return alert('Votre panier est vide.');
-
-      try {
-          const res = await fetch('/.netlify/functions/send-order', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ cart })
-          });
-
-          const data = await res.json();
-          if (res.ok) {
-              alert('Commande envoyée avec succès !');
-              cart = [];
-              localStorage.setItem('cart', JSON.stringify(cart));
-              updateCart();
-          } else {
-              alert('Erreur lors de l’envoi de la commande : ' + data.error);
-          }
-      } catch (err) {
-          console.error(err);
-          alert('Erreur réseau lors de l’envoi de la commande.');
-      }
-  });
-
-  // Listeners pour filtres
   document.getElementById('typeSelect').addEventListener('change', e => {
       const type = e.target.value;
       populateTitleDropdown(type);
