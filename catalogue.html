@@ -1,418 +1,259 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Catalogue - Love Mon Bijou</title>
-<style>
-/* --- Global styles --- */
-body {
-    font-family: Arial, sans-serif;
-    background: #fafafa;
-    margin: 0;
-    color: #333;
-}
-nav {
-    padding: 15px;
-    background: #f8f9fa;
-    text-align: center;
-    border-bottom: 2px solid #e9ecef;
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 1000;
-}
-nav a {
-    margin: 0 10px;
-    text-decoration: none;
-    color: #495057;
-    font-weight: bold;
-    font-size: 0.95em;
-}
-.content {
-    margin-top: 80px;
-    padding: 20px;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-}
+<main>
+  <h1>Catalogue Interactif avec Commande</h1>
 
-/* --- Filters --- */
-.filters {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    margin-bottom: 30px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    align-items: center;
-}
-.filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    flex: 1 1 150px;
-}
-.filter-group label {
-    font-weight: bold;
-    font-size: 0.9em;
-    color: #666;
-}
-.filter-group select {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background: white;
-}
-.reset-btn {
-    padding: 10px 16px;
-    background: #e91e63;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    flex-shrink: 0;
-}
+  <!-- Filtres et tri -->
+  <div>
+    <label for="typeSelect">Type de produit:</label>
+    <select id="typeSelect">
+        <option value="">--Tous les types--</option>
+    </select>
 
-/* --- Product grid --- */
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 25px;
-}
-.product-card {
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-.product-image {
-    width: 100%;
-    height: 200px;
-    background: #f5f5f5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #999;
-    font-size: 14px;
-    background-size: cover;
-    background-position: center;
-}
-.product-info {
-    padding: 20px;
-}
-.product-title { font-size: 1.2em; font-weight: bold; margin-bottom: 8px; color: #333; }
-.product-meta { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9em; }
-.product-type { background: #e91e63; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; }
-.product-metal { color: #666; }
-.product-price { font-size: 1.3em; font-weight: bold; color: #e91e63; margin: 10px 0; }
-.product-description { color: #666; font-size: 0.9em; line-height: 1.4; margin-bottom: 15px; }
+    <label for="titleSelect">Titre du produit:</label>
+    <select id="titleSelect">
+        <option value="">--Tous les titres--</option>
+    </select>
 
-/* Size selection */
-.size-selection { margin-bottom: 15px; }
-.size-label { font-weight: bold; color: #666; font-size: 0.9em; margin-bottom: 8px; display: block; }
-.size-options { display: flex; flex-wrap: wrap; gap: 5px; }
-.size-option {
-    padding: 6px 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background: white;
-    cursor: pointer;
-    font-size: 0.8em;
-    transition: all 0.3s ease;
-}
-.size-option:hover { border-color: #e91e63; }
-.size-option.selected { background: #e91e63; color: white; border-color: #e91e63; }
-.size-option.unavailable { background: #f5f5f5; color: #999; cursor: not-allowed; text-decoration: line-through; }
+    <label for="priceSort">Trier par prix:</label>
+    <select id="priceSort">
+        <option value="">--Aucun--</option>
+        <option value="asc">Prix croissant</option>
+        <option value="desc">Prix décroissant</option>
+    </select>
+  </div>
 
-/* Buttons */
-.product-actions { display: flex; gap: 10px; }
-.add-to-cart, .order-btn {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.3s ease;
-}
-.add-to-cart { background: #333; color: white; }
-.add-to-cart:hover { background: #555; }
-.order-btn { background: #e91e63; color: white; }
-.order-btn:hover { background: #d81b60; }
-.order-btn:disabled { background: #ccc; cursor: not-allowed; }
-.no-products { text-align: center; padding: 40px; color: #666; font-style: italic; grid-column: 1 / -1; }
+  <!-- Tableau du catalogue -->
+  <table id="productTable">
+      <thead>
+          <tr>
+              <th>Titre</th>
+              <th>Couleur</th>
+              <th>Or</th>
+              <th>Poids</th>
+              <th>Quantités par taille</th>
+              <th>Prix (€)</th>
+              <th>Taille</th>
+              <th>Quantité</th>
+              <th>Commande</th>
+          </tr>
+      </thead>
+      <tbody></tbody>
+  </table>
 
-/* Responsive tweaks */
-@media(max-width:600px){
-    nav a{ display:block; margin:5px 0; }
-    .filters{ flex-direction:column; }
-    .filter-group{ flex:1 1 100%; }
-}
-</style>
-</head>
-<body>
-<nav>
-    <a href="index.html">Accueil</a>
-    <a href="fabrication.html">Fabrication</a>
-    <a href="catalogue.html">Catalogue</a>
-    <a href="commande.html">Commande</a>
-    <a href="success.html">Confirmation</a>
-    <a href="cancel.html">Annulation</a>
-</nav>
+  <!-- Panier -->
+  <h2>Panier</h2>
+  <table id="cartTable">
+      <thead>
+          <tr>
+              <th>Titre</th>
+              <th>Taille</th>
+              <th>Quantité</th>
+              <th>Prix unitaire (€)</th>
+              <th>Total (€)</th>
+              <th>Supprimer</th>
+          </tr>
+      </thead>
+      <tbody></tbody>
+  </table>
+  <p id="cartTotal"><strong>Total général: 0 €</strong></p>
+  <button id="checkoutBtn">Valider la commande</button>
 
-<div class="content">
-    <h1>📿 Catalogue Love Mon Bijou</h1>
-    <p>Découvrez notre magnifique collection de bijoux personnalisés.</p>
+  <script>
+  let products = [];
+  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
-    <div class="filters">
-        <div class="filter-group">
-            <label for="type-filter">Type de bijou</label>
-            <select id="type-filter">
-                <option value="">Tous les types</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="metal-filter">Type de métal</label>
-            <select id="metal-filter">
-                <option value="">Tous les métaux</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="pierre-filter">Type de pierre</label>
-            <select id="pierre-filter">
-                <option value="">Toutes les pierres</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="price-filter">Prix maximum</label>
-            <select id="price-filter">
-                <option value="">Tous les prix</option>
-                <option value="50">Moins de 50€</option>
-                <option value="100">Moins de 100€</option>
-                <option value="200">Moins de 200€</option>
-                <option value="500">Moins de 500€</option>
-            </select>
-        </div>
-        <button class="reset-btn" onclick="resetFilters()">Réinitialiser</button>
-    </div>
+  async function loadProducts() {
+      try {
+          const res = await fetch('/.netlify/functions/get-products');
+          if (!res.ok) throw new Error('Erreur lors du chargement des produits');
+          products = await res.json();
 
-    <div class="products-grid" id="products-grid"></div>
-</div>
-<script>
-// URL complète pour accéder au CSV publié
-const API_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFPt61HeN0sqxFCYaBHhJY5WELXc2fpjDiLLMPhbWaCK7Q7dW8Qk6QhjqMNtAX_wYpIT_6tfSm3NWO/pub?output=csv';
+          populateTypeDropdown();
+          populateTable();
+          updateCart();
+      } catch (err) {
+          console.error(err);
+          alert('Impossible de charger le catalogue. Vérifiez la console.');
+      }
+  }
 
-// Tailles disponibles pour les bagues
-const availableSizes = [48,50,52,54,56,58,60];
+  // Remplissage des dropdowns
+  function populateTypeDropdown() {
+      const typeSelect = document.getElementById('typeSelect');
+      const types = [...new Set(products.map(p => p.couleur))];
+      types.forEach(type => {
+          const option = document.createElement('option');
+          option.value = type;
+          option.textContent = type;
+          typeSelect.appendChild(option);
+      });
+  }
 
-// Stockage des produits et sélection
-let products = [];
-const selectedSizes = {};
+  function populateTitleDropdown(selectedType) {
+      const titleSelect = document.getElementById('titleSelect');
+      titleSelect.innerHTML = '<option value="">--Tous les titres--</option>';
+      const filtered = selectedType ? products.filter(p => p.couleur === selectedType) : products;
+      const titles = [...new Set(filtered.map(p => p.titre))];
+      titles.forEach(title => {
+          const option = document.createElement('option');
+          option.value = title;
+          option.textContent = title;
+          titleSelect.appendChild(option);
+      });
+  }
 
-// Charger les produits depuis Google Sheets
-async function loadProductsFromGoogleSheets() {
-    try {
-        const response = await fetch(API_URL);
-        const csvText = await response.text();
-        products = parseCSV(csvText);
-        populateFilterOptions();
-        displayProducts(products);
-    } catch (error) {
-        console.error('Erreur lors du chargement des produits:', error);
-        document.getElementById('products-grid').innerHTML =
-            '<div class="no-products">Erreur de chargement du catalogue. Veuillez réessayer plus tard.</div>';
-    }
-}
+  // Parsing des tailles
+  function parseSizes(sizesField) {
+      if (!sizesField) return [];
+      try {
+          return JSON.parse(sizesField);
+      } catch (err) {
+          console.warn('Impossible de parser les tailles:', sizesField);
+          return [];
+      }
+  }
 
-// Parser le CSV
-function parseCSV(csvText) {
-    const lines = csvText.split('\n').filter(line => line.trim() !== '');
-    if (lines.length === 0) return [];
+  // Ajouter au panier
+  function addToCart(reference, selectedSize, quantity) {
+      const product = products.find(p => p.reference === reference);
+      if (!product) return alert('Produit introuvable');
+      if (!selectedSize) return alert('Veuillez sélectionner une taille.');
+      if (!quantity || quantity < 1) return alert('Veuillez sélectionner une quantité valide.');
 
-    const headers = lines[0].split(',').map(header => header.trim().toLowerCase());
+      cart.push({
+          reference: product.reference,
+          titre: product.titre,
+          prix: product.prix,
+          taille: selectedSize,
+          quantity: parseInt(quantity, 10)
+      });
+      localStorage.setItem('cart', JSON.stringify(cart));
+      alert(`Produit "${product.titre}" (${selectedSize}) x${quantity} ajouté au panier !`);
+      updateCart();
+  }
 
-    return lines.slice(1).map((line, index) => {
-        const values = line.split(',').map(value => value.trim());
-        const product = { id: index + 1 };
+  // Supprimer un produit du panier
+  function removeFromCart(index) {
+      cart.splice(index, 1);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateCart();
+  }
 
-        headers.forEach((header, i) => {
-            const value = values[i] || '';
-            switch(header) {
-                case 'reference': product.reference = value; break;
-                case 'description': product.description = value; break;
-                case 'image': product.image = value; break;
-                case 'couleur': product.couleur = value; break;
-                case 'titre': product.titre = value; break;
-                case 'poids': product.poids = value; break;
-                case 'or': product.or = value; break;
-                case 'type de pierres': product.pierres = value; break;
-                case 'type de bijou': product.type = value; break;
-                case 'tailles disponibles':
-                    product.availableSizes = value ? value.split(',').map(size => parseInt(size.trim())) : [];
-                    break;
-                case 'quantité par taille': product.quantiteParTaille = value; break;
-                case 'prix':
-                    const cleanPrice = value.replace('€','').replace(/\s/g,'').replace(',', '.');
-                    product.prix = parseFloat(cleanPrice) || 0;
-                    break;
-                default: product[header] = value;
-            }
-        });
+  // Mettre à jour le panier
+  function updateCart() {
+      const tbody = document.querySelector('#cartTable tbody');
+      tbody.innerHTML = '';
+      let totalGeneral = 0;
 
-        return product;
-    }).filter(product => product.titre && product.prix > 0);
-}
+      cart.forEach((item, index) => {
+          const totalItem = item.prix * item.quantity;
+          totalGeneral += totalItem;
 
-// Remplir les filtres
-function populateFilterOptions() {
-    const types = [...new Set(products.map(p => p.type).filter(Boolean))];
-    const couleurs = [...new Set(products.map(p => p.couleur).filter(Boolean))];
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+              <td>${item.titre}</td>
+              <td>${item.taille}</td>
+              <td>${item.quantity}</td>
+              <td>${item.prix.toFixed(2)}</td>
+              <td>${totalItem.toFixed(2)}</td>
+              <td><button class="removeBtn">Supprimer</button></td>
+          `;
+          tbody.appendChild(tr);
 
-    const typeFilter = document.getElementById('type-filter');
-    const metalFilter = document.getElementById('metal-filter');
+          tr.querySelector('.removeBtn').addEventListener('click', () => removeFromCart(index));
+      });
 
-    types.forEach(type => {
-        const option = document.createElement('option');
-        option.value = type;
-        option.textContent = type;
-        typeFilter.appendChild(option);
-    });
+      document.getElementById('cartTotal').innerHTML = `<strong>Total général: ${totalGeneral.toFixed(2)} €</strong>`;
+  }
 
-    couleurs.forEach(couleur => {
-        const option = document.createElement('option');
-        option.value = couleur;
-        option.textContent = couleur;
-        metalFilter.appendChild(option);
-    });
-}
+  // Remplir le tableau du catalogue
+  function populateTable() {
+      const tbody = document.querySelector('#productTable tbody');
+      tbody.innerHTML = '';
 
-// Afficher les produits
-function displayProducts(productsToShow) {
-    const grid = document.getElementById('products-grid');
+      const selectedType = document.getElementById('typeSelect').value;
+      const selectedTitle = document.getElementById('titleSelect').value;
+      const priceSort = document.getElementById('priceSort').value;
 
-    if (productsToShow.length === 0) {
-        grid.innerHTML = '<div class="no-products">Aucun produit ne correspond à vos critères de recherche.</div>';
-        return;
-    }
+      let filtered = products;
+      if (selectedType) filtered = filtered.filter(p => p.couleur === selectedType);
+      if (selectedTitle) filtered = filtered.filter(p => p.titre === selectedTitle);
 
-    grid.innerHTML = productsToShow.map(product => {
-        if (!selectedSizes[product.id]) selectedSizes[product.id] = product.availableSizes ? product.availableSizes[0] : null;
-        const hasSizes = product.availableSizes && product.availableSizes.length > 0;
-        const selectedSize = selectedSizes[product.id];
-        const canOrder = !hasSizes || selectedSize;
+      if (priceSort === 'asc') filtered.sort((a,b) => a.prix - b.prix);
+      if (priceSort === 'desc') filtered.sort((a,b) => b.prix - a.prix);
 
-        return `
-            <div class="product-card">
-                <div class="product-image" style="background-image: url('${product.image || ''}')">
-                    ${!product.image ? '🖼️ Image du produit' : ''}
-                </div>
-                <div class="product-info">
-                    <div class="reference">Ref: ${product.reference || 'N/A'}</div>
-                    <div class="product-title">${product.titre || 'Sans titre'}</div>
-                    <div class="product-meta">
-                        <span class="product-type">${product.type || 'Bijou'}</span>
-                        <span class="product-metal">${product.couleur || ''}</span>
-                    </div>
-                    <div class="product-price">${product.prix || 0}€</div>
+      filtered.forEach(p => {
+          const sizesArray = parseSizes(p.autre_pierre);
+          const sizeOptions = sizesArray.map(s => 
+              `<option value="${s.size}">${s.size} (${s.quantity})</option>`
+          ).join('');
 
-                    ${hasSizes ? `
-                        <div class="size-selection">
-                            <label class="size-label">Taille de bague :</label>
-                            <div class="size-options">
-                                ${availableSizes.map(size => `
-                                    <div class="size-option ${product.availableSizes.includes(size) ? '' : 'unavailable'} ${selectedSize === size ? 'selected' : ''}" 
-                                         onclick="selectSize(${product.id}, ${size})" 
-                                         ${!product.availableSizes.includes(size) ? 'style="cursor: not-allowed;"' : ''}>
-                                        ${size}
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+              <td>${p.titre}</td>
+              <td>${p.couleur}</td>
+              <td>${p.or}</td>
+              <td>${p.poids}</td>
+              <td>${sizesArray.map(s => `${s.size}: ${s.quantity}`).join('<br>')}</td>
+              <td>${p.prix.toFixed(2)}</td>
+              <td>
+                  <select class="sizeSelect">
+                      <option value="">--Choisir--</option>
+                      ${sizeOptions}
+                  </select>
+              </td>
+              <td>
+                  <input type="number" class="qtyInput" min="1" value="1" style="width:50px">
+              </td>
+              <td><button class="orderBtn">Commander</button></td>
+          `;
+          tbody.appendChild(tr);
 
-                    <div class="product-actions">
-                        <button class="add-to-cart" onclick="addToCart(${product.id})">Ajouter au panier</button>
-                        <button class="order-btn" ${!canOrder ? 'disabled' : ''} onclick="orderProduct(${product.id})">Commander</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
+          const btn = tr.querySelector('.orderBtn');
+          const select = tr.querySelector('.sizeSelect');
+          const qtyInput = tr.querySelector('.qtyInput');
 
-// Sélection de taille
-function selectSize(productId, size) {
-    const product = products.find(p => p.id === productId);
-    if (product && product.availableSizes.includes(size)) {
-        selectedSizes[productId] = size;
-        displayProducts(products);
-    }
-}
+          btn.addEventListener('click', () => {
+              addToCart(p.reference, select.value, qtyInput.value);
+          });
+      });
+  }
 
-// Commander un produit
-function orderProduct(productId) {
-    const product = products.find(p => p.id === productId);
-    const selectedSize = selectedSizes[productId];
-    let params = `productId=${productId}`;
-    if (selectedSize) params += `&taille=${selectedSize}`;
-    if (product) {
-        params += `&reference=${encodeURIComponent(product.reference || '')}`;
-        params += `&produit=${encodeURIComponent(product.titre || '')}`;
-        params += `&prix=${product.prix || 0}`;
-    }
-    window.location.href = `commande.html?${params}`;
-}
+  // Bouton valider la commande
+  document.getElementById('checkoutBtn').addEventListener('click', async () => {
+      if (cart.length === 0) return alert('Votre panier est vide.');
 
-// Ajouter au panier
-function addToCart(productId) {
-    const product = products.find(p => p.id === productId);
-    const selectedSize = selectedSizes[productId];
-    let message = `Produit "${product.titre}" ajouté au panier !`;
-    if (selectedSize) message += ` Taille : ${selectedSize}`;
-    alert(message);
-}
+      try {
+          const res = await fetch('/.netlify/functions/send-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ cart })
+          });
 
-// Filtrer les produits
-function filterProducts() {
-    const typeFilter = document.getElementById('type-filter').value;
-    const metalFilter = document.getElementById('metal-filter').value;
-    const priceFilter = document.getElementById('price-filter').value;
+          const data = await res.json();
+          if (res.ok) {
+              alert('Commande envoyée avec succès !');
+              cart = [];
+              localStorage.setItem('cart', JSON.stringify(cart));
+              updateCart();
+          } else {
+              alert('Erreur lors de l’envoi de la commande : ' + data.error);
+          }
+      } catch (err) {
+          console.error(err);
+          alert('Erreur réseau lors de l’envoi de la commande.');
+      }
+  });
 
-    const filteredProducts = products.filter(product => {
-        const typeMatch = !typeFilter || product.type === typeFilter;
-        const metalMatch = !metalFilter || product.couleur === metalFilter;
-        const priceMatch = !priceFilter || (product.prix && product.prix <= parseInt(priceFilter));
-        return typeMatch && metalMatch && priceMatch;
-    });
+  // Listeners pour filtres
+  document.getElementById('typeSelect').addEventListener('change', e => {
+      const type = e.target.value;
+      populateTitleDropdown(type);
+      populateTable();
+  });
 
-    displayProducts(filteredProducts);
-}
+  document.getElementById('titleSelect').addEventListener('change', populateTable);
+  document.getElementById('priceSort').addEventListener('change', populateTable);
 
-// Réinitialiser les filtres
-function resetFilters() {
-    document.getElementById('type-filter').value = '';
-    document.getElementById('metal-filter').value = '';
-    document.getElementById('price-filter').value = '';
-    displayProducts(products);
-}
-
-// Attendre que le DOM soit chargé
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('type-filter').addEventListener('change', filterProducts);
-    document.getElementById('metal-filter').addEventListener('change', filterProducts);
-    document.getElementById('price-filter').addEventListener('change', filterProducts);
-
-    // Charger les produits
-    loadProductsFromGoogleSheets();
-});
-</script>
-
-</body>
-</html>
+  loadProducts();
+  </script>
+</main>
