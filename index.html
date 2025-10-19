@@ -139,7 +139,6 @@ function populateTable() {
         tbody.appendChild(tr);
     });
 
-    // Ajouter événement pour chaque bouton Ajouter
     document.querySelectorAll('#productTable button').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const idx = e.target.getAttribute('data-index');
@@ -166,7 +165,7 @@ function updateCart() {
     document.getElementById('cartTotal').textContent = total.toFixed(2);
 }
 
-// Envoi de la commande via Netlify Function
+// Envoyer la commande via Netlify Function + Infomaniak SMTP
 document.getElementById('checkoutBtn').addEventListener('click', async () => {
     if (cart.length === 0) {
         alert('Votre panier est vide.');
