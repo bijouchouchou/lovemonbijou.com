@@ -5,236 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Catalogue - Love Mon Bijou</title>
     <style>
-        body { 
-            font-family: 'Arial', sans-serif; 
-            background: #fafafa; 
-            margin: 0; 
-            color: #333;
-        }
-        nav { 
-            padding: 15px; 
-            background: #f8f9fa; 
-            text-align: center; 
-            border-bottom: 2px solid #e9ecef; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            z-index: 1000; 
-        }
-        nav a { 
-            margin: 0 15px; 
-            text-decoration: none; 
-            color: #495057; 
-            font-weight: bold; 
-        }
-        .content { 
-            margin-top: 80px; 
-            padding: 20px; 
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .filters {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-        }
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .filter-group label {
-            font-weight: bold;
-            font-size: 0.9em;
-            color: #666;
-        }
-        .filter-group select {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background: white;
-        }
-        .reset-btn {
-            padding: 8px 16px;
-            background: #e91e63;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-left: auto;
-        }
-        
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
-        }
-        .product-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        .product-image {
-            width: 100%;
-            height: 200px;
-            background: #f5f5f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
-            font-size: 14px;
-            background-size: cover;
-            background-position: center;
-        }
-        .product-info {
-            padding: 20px;
-        }
-        .product-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #333;
-        }
-        .product-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.9em;
-        }
-        .product-type {
-            background: #e91e63;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
-        }
-        .product-metal {
-            color: #666;
-        }
-        .product-price {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #e91e63;
-            margin: 10px 0;
-        }
-        .product-details {
-            color: #666;
-            font-size: 0.9em;
-            line-height: 1.4;
-            margin-bottom: 15px;
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 4px;
-        }
-        
-        .size-selection {
-            margin-bottom: 15px;
-        }
-        .size-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #666;
-            font-size: 0.9em;
-        }
-        .size-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-        .size-option {
-            padding: 6px 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background: white;
-            cursor: pointer;
-            font-size: 0.8em;
-            transition: all 0.3s ease;
-        }
-        .size-option:hover {
-            border-color: #e91e63;
-        }
-        .size-option.selected {
-            background: #e91e63;
-            color: white;
-            border-color: #e91e63;
-        }
-        .size-option.unavailable {
-            background: #f5f5f5;
-            color: #999;
-            cursor: not-allowed;
-            text-decoration: line-through;
-        }
-        
-        .product-actions {
-            display: flex;
-            gap: 10px;
-        }
-        .add-to-cart, .order-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s ease;
-        }
-        .add-to-cart {
-            background: #333;
-            color: white;
-        }
-        .add-to-cart:hover {
-            background: #555;
-        }
-        .order-btn {
-            background: #e91e63;
-            color: white;
-        }
-        .order-btn:hover {
-            background: #d81b60;
-        }
-        .order-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .no-products {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            font-style: italic;
-            grid-column: 1 / -1;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-        
-        .reference {
-            font-size: 0.8em;
-            color: #999;
-            margin-bottom: 5px;
-        }
+        body { font-family: 'Arial', sans-serif; background: #fafafa; margin: 0; color: #333; }
+        nav { padding: 15px; background: #f8f9fa; text-align: center; border-bottom: 2px solid #e9ecef; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        nav a { margin: 0 15px; text-decoration: none; color: #495057; font-weight: bold; }
+        .content { margin-top: 80px; padding: 20px; max-width: 1200px; margin-left: auto; margin-right: auto; }
+        .filters { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+        .filter-group { display: flex; flex-direction: column; gap: 5px; }
+        .filter-group label { font-weight: bold; font-size: 0.9em; color: #666; }
+        .filter-group select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; background: white; }
+        .reset-btn { padding: 8px 16px; background: #e91e63; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: auto; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
+        .product-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .product-image { width: 100%; height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #999; font-size: 14px; background-size: cover; background-position: center; }
+        .product-info { padding: 20px; }
+        .product-title { font-size: 1.2em; font-weight: bold; margin-bottom: 8px; color: #333; }
+        .product-meta { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9em; }
+        .product-type { background: #e91e63; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; }
+        .product-metal { color: #666; }
+        .product-price { font-size: 1.3em; font-weight: bold; color: #e91e63; margin: 10px 0; }
+        .product-details { color: #666; font-size: 0.9em; line-height: 1.4; margin-bottom: 15px; }
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .size-selection { margin-bottom: 15px; }
+        .size-label { display: block; margin-bottom: 8px; font-weight: bold; color: #666; font-size: 0.9em; }
+        .size-options { display: flex; flex-wrap: wrap; gap: 5px; }
+        .size-option { padding: 6px 10px; border: 1px solid #ddd; border-radius: 5px; background: white; cursor: pointer; font-size: 0.8em; transition: all 0.3s ease; }
+        .size-option:hover { border-color: #e91e63; }
+        .size-option.selected { background: #e91e63; color: white; border-color: #e91e63; }
+        .size-option.unavailable { background: #f5f5f5; color: #999; cursor: not-allowed; text-decoration: line-through; }
+        .product-actions { display: flex; gap: 10px; }
+        .add-to-cart, .order-btn { flex: 1; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.3s ease; }
+        .add-to-cart { background: #333; color: white; }
+        .add-to-cart:hover { background: #555; }
+        .order-btn { background: #e91e63; color: white; }
+        .order-btn:hover { background: #d81b60; }
+        .order-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .no-products { text-align: center; padding: 40px; color: #666; font-style: italic; grid-column: 1 / -1; }
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .reference { font-size: 0.8em; color: #999; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -293,7 +101,7 @@
     </div>
 
     <script>
-        // Configuration Google Sheets - VOTRE ID
+        // Configuration Google Sheets
         const SHEET_ID = '1TFPt61HeN0sqxFCYaBHhJY5WELXc2fpjDiLLMPhbWaCK7Q7dW8Qk6QhjqMNtAX_wYpIT_6tfSm3NWO';
         const API_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
 
@@ -318,7 +126,7 @@
             }
         }
 
-        // Parser le CSV selon VOTRE structure
+        // Parser le CSV selon votre structure
         function parseCSV(csvText) {
             const lines = csvText.split('\n').filter(line => line.trim() !== '');
             if (lines.length === 0) return [];
@@ -333,45 +141,24 @@
                     const value = values[i] || '';
                     
                     switch(header) {
-                        case 'reference':
-                            product.reference = value;
+                        case 'reference': product.reference = value; break;
+                        case 'description': product.description = value; break;
+                        case 'image': product.image = value; break;
+                        case 'couleur': product.couleur = value; break;
+                        case 'titre': product.titre = value; break;
+                        case 'poids': product.poids = value; break;
+                        case 'or': product.or = value; break;
+                        case 'type de pierres': product.pierres = value; break;
+                        case 'type de bijou': product.type = value; break;
+                        case 'tailles disponibles': 
+                            product.availableSizes = value ? value.split(',').map(size => parseInt(size.trim())) : []; 
                             break;
-                        case 'description':
-                            product.description = value;
-                            break;
-                        case 'image':
-                            product.image = value;
-                            break;
-                        case 'couleur':
-                            product.couleur = value;
-                            break;
-                        case 'titre':
-                            product.titre = value;
-                            break;
-                        case 'poids':
-                            product.poids = value;
-                            break;
-                        case 'or':
-                            product.or = value;
-                            break;
-                        case 'type de pierres':
-                            product.pierres = value;
-                            break;
-                        case 'type de bijou':
-                            product.type = value;
-                            break;
-                        case 'tailles disponibles':
-                            product.availableSizes = value ? value.split(',').map(size => parseInt(size.trim())) : [];
-                            break;
-                        case 'quantité par taille':
-                            product.quantiteParTaille = value;
-                            break;
-                        case 'prix':
+                        case 'quantité par taille': product.quantiteParTaille = value; break;
+                        case 'prix': 
                             const cleanPrice = value.replace('€', '').replace(/\s/g, '').replace(',', '.');
-                            product.prix = parseFloat(cleanPrice) || 0;
+                            product.prix = parseFloat(cleanPrice) || 0; 
                             break;
-                        default:
-                            product[header] = value;
+                        default: product[header] = value;
                     }
                 });
                 
@@ -389,7 +176,6 @@
             const metalFilter = document.getElementById('metal-filter');
             const pierreFilter = document.getElementById('pierre-filter');
             
-            // Ajouter les types
             types.forEach(type => {
                 const option = document.createElement('option');
                 option.value = type;
@@ -397,7 +183,6 @@
                 typeFilter.appendChild(option);
             });
             
-            // Ajouter les couleurs/métaux
             couleurs.forEach(couleur => {
                 const option = document.createElement('option');
                 option.value = couleur;
@@ -405,7 +190,6 @@
                 metalFilter.appendChild(option);
             });
             
-            // Ajouter les types de pierres
             pierres.forEach(pierre => {
                 const option = document.createElement('option');
                 option.value = pierre;
@@ -424,7 +208,6 @@
             }
             
             grid.innerHTML = productsToShow.map(product => {
-                // Initialiser la taille sélectionnée pour ce produit
                 if (!selectedSizes[product.id]) {
                     selectedSizes[product.id] = product.availableSizes ? product.availableSizes[0] : null;
                 }
@@ -470,12 +253,8 @@
                             ` : ''}
                             
                             <div class="product-actions">
-                                <button class="add-to-cart" onclick="addToCart(${product.id})">
-                                    Ajouter au panier
-                                </button>
-                                <button class="order-btn" ${!canOrder ? 'disabled' : ''} onclick="orderProduct(${product.id})">
-                                    Commander
-                                </button>
+                                <button class="add-to-cart" onclick="addToCart(${product.id})">Ajouter au panier</button>
+                                <button class="order-btn" ${!canOrder ? 'disabled' : ''} onclick="orderProduct(${product.id})">Commander</button>
                             </div>
                         </div>
                     </div>
@@ -498,9 +277,7 @@
             const selectedSize = selectedSizes[productId];
             
             let params = `productId=${productId}`;
-            if (selectedSize) {
-                params += `&taille=${selectedSize}`;
-            }
+            if (selectedSize) params += `&taille=${selectedSize}`;
             if (product) {
                 params += `&reference=${encodeURIComponent(product.reference || '')}`;
                 params += `&produit=${encodeURIComponent(product.titre || '')}`;
@@ -544,22 +321,17 @@
             const selectedSize = selectedSizes[productId];
             
             let message = `Produit "${product.titre}" ajouté au panier !`;
-            if (selectedSize) {
-                message += ` Taille : ${selectedSize}`;
-            }
+            if (selectedSize) message += ` Taille : ${selectedSize}`;
             
             alert(message);
         }
 
         // CORRECTION : Attendre que le DOM soit chargé
         document.addEventListener('DOMContentLoaded', function() {
-            // Écouteurs d'événements pour les filtres
             document.getElementById('type-filter').addEventListener('change', filterProducts);
             document.getElementById('metal-filter').addEventListener('change', filterProducts);
             document.getElementById('pierre-filter').addEventListener('change', filterProducts);
             document.getElementById('price-filter').addEventListener('change', filterProducts);
-
-            // Charger les produits au démarrage
             loadProductsFromGoogleSheets();
         });
     </script>
