@@ -6,9 +6,10 @@
     <title>Catalogue - Love Mon Bijou</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
+            font-family: 'Arial', sans-serif; 
             background: #fafafa; 
             margin: 0; 
+            color: #333;
         }
         nav { 
             padding: 15px; 
@@ -30,22 +31,194 @@
         .content { 
             margin-top: 80px; 
             padding: 20px; 
-            text-align: center;
-        }
-        .sheet-container {
-            width: 100%;
             max-width: 1200px;
-            height: 70vh;
-            border: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Filtres */
+        .filters {
+            background: white;
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            margin: 20px auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .filter-group label {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             background: white;
         }
-        .loading {
-            padding: 40px;
-            font-style: italic;
+        .reset-btn {
+            padding: 8px 16px;
+            background: #e91e63;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: auto;
+        }
+        
+        /* Grille de produits */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+        .product-info {
+            padding: 20px;
+        }
+        .product-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .product-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        .product-type {
+            background: #e91e63;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+        .product-metal {
             color: #666;
+        }
+        .product-price {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #e91e63;
+            margin: 10px 0;
+        }
+        .product-description {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+        
+        /* Sélection de taille */
+        .size-selection {
+            margin-bottom: 15px;
+        }
+        .size-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .size-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .size-option {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+        }
+        .size-option:hover {
+            border-color: #e91e63;
+        }
+        .size-option.selected {
+            background: #e91e63;
+            color: white;
+            border-color: #e91e63;
+        }
+        .size-option.unavailable {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+        
+        /* Boutons */
+        .product-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .add-to-cart, .order-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        .add-to-cart {
+            background: #333;
+            color: white;
+        }
+        .add-to-cart:hover {
+            background: #555;
+        }
+        .order-btn {
+            background: #e91e63;
+            color: white;
+        }
+        .order-btn:hover {
+            background: #d81b60;
+        }
+        .order-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .no-products {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+            grid-column: 1 / -1;
         }
     </style>
 </head>
@@ -54,6 +227,7 @@
         <a href="index.html">Accueil</a>
         <a href="fabrication.html">Fabrication</a>
         <a href="catalogue.html">Catalogue</a>
+        <a href="commande.html">Commande</a>
         <a href="success.html">Confirmation</a>
         <a href="cancel.html">Annulation</a>
     </nav>
@@ -62,16 +236,262 @@
         <h1>📿 Catalogue Love Mon Bijou</h1>
         <p>Découvrez notre magnifique collection de bijoux personnalisés.</p>
         
-        <!-- Intégration Google Sheets -->
-        <iframe class="sheet-container" 
-                src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTFPt61HeN0sqxFCYaBHhJY5WELXc2fpjDiLLMPhbWaCK7Q7dW8Qk6QhjqMNtAX_wYpIT_6tfSm3NWO/pubhtml?gid=824897907&amp;single=true&amp;widget=true&amp;headers=false"
-                loading="lazy">
-            <div class="loading">Chargement du catalogue...</div>
-        </iframe>
+        <!-- Filtres -->
+        <div class="filters">
+            <div class="filter-group">
+                <label for="type-filter">Type de bijou</label>
+                <select id="type-filter">
+                    <option value="">Tous les types</option>
+                    <option value="Bague">Bague</option>
+                    <option value="Collier">Collier</option>
+                    <option value="Bracelet">Bracelet</option>
+                    <option value="Boucles d'oreilles">Boucles d'oreilles</option>
+                    <option value="Pendentif">Pendentif</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="metal-filter">Type de métal</label>
+                <select id="metal-filter">
+                    <option value="">Tous les métaux</option>
+                    <option value="Argent">Argent</option>
+                    <option value="Or">Or</option>
+                    <option value="Or rose">Or rose</option>
+                    <option value="Acier">Acier</option>
+                    <option value="Platine">Platine</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="price-filter">Prix maximum</label>
+                <select id="price-filter">
+                    <option value="">Tous les prix</option>
+                    <option value="50">Moins de 50€</option>
+                    <option value="100">Moins de 100€</option>
+                    <option value="200">Moins de 200€</option>
+                    <option value="500">Moins de 500€</option>
+                </select>
+            </div>
+            
+            <button class="reset-btn" onclick="resetFilters()">Réinitialiser</button>
+        </div>
         
-        <p style="margin-top: 20px; color: #666;">
-            <em>Notre catalogue est mis à jour régulièrement</em>
-        </p>
+        <!-- Grille de produits -->
+        <div class="products-grid" id="products-grid">
+            <!-- Les produits seront chargés ici par JavaScript -->
+        </div>
     </div>
+
+    <script>
+        // Tailles disponibles pour les bagues
+        const availableSizes = [48, 50, 52, 54, 56, 58, 60];
+
+        // Données des produits
+        const products = [
+            {
+                id: 1,
+                title: "Bague Élégance",
+                type: "Bague",
+                metal: "Argent",
+                price: 89,
+                description: "Bague en argent avec pierre précieuse naturelle",
+                image: "💍",
+                availableSizes: [48, 50, 52, 54, 56], // Tailles disponibles
+                defaultSize: 52 // Taille par défaut
+            },
+            {
+                id: 2,
+                title: "Collier Perle Naturelle",
+                type: "Collier",
+                metal: "Or",
+                price: 120,
+                description: "Collier avec perle naturelle et chaîne en or",
+                image: "📿",
+                // Pas de tailles pour les colliers
+            },
+            {
+                id: 3,
+                title: "Bracelet Argent Massif",
+                type: "Bracelet",
+                metal: "Argent",
+                price: 65,
+                description: "Bracelet en argent massif, design moderne",
+                image: "📿",
+                // Pas de tailles pour les bracelets standard
+            },
+            {
+                id: 4,
+                title: "Boucles d'oreilles Or Rose",
+                type: "Boucles d'oreilles",
+                metal: "Or rose",
+                price: 45,
+                description: "Boucles d'oreilles en or rose avec zirconium",
+                image: "👂",
+            },
+            {
+                id: 5,
+                title: "Bague Alliance Or",
+                type: "Bague",
+                metal: "Or",
+                price: 150,
+                description: "Bague alliance en or jaune 18 carats",
+                image: "💍",
+                availableSizes: [50, 52, 54, 56, 58, 60],
+                defaultSize: 54
+            },
+            {
+                id: 6,
+                title: "Bague Platine Étoile",
+                type: "Bague",
+                metal: "Platine",
+                price: 220,
+                description: "Bague en platine avec motif étoile élégant",
+                image: "💍",
+                availableSizes: [48, 50, 52, 54],
+                defaultSize: 50
+            }
+        ];
+
+        // Stockage des sélections de taille par produit
+        const selectedSizes = {};
+
+        // Fonction pour afficher les produits
+        function displayProducts(productsToShow) {
+            const grid = document.getElementById('products-grid');
+            
+            if (productsToShow.length === 0) {
+                grid.innerHTML = '<div class="no-products">Aucun produit ne correspond à vos critères de recherche.</div>';
+                return;
+            }
+            
+            grid.innerHTML = productsToShow.map(product => {
+                // Initialiser la taille sélectionnée pour ce produit
+                if (!selectedSizes[product.id]) {
+                    selectedSizes[product.id] = product.defaultSize || (product.availableSizes ? product.availableSizes[0] : null);
+                }
+                
+                const hasSizes = product.availableSizes && product.availableSizes.length > 0;
+                const selectedSize = selectedSizes[product.id];
+                const canOrder = !hasSizes || selectedSize;
+                
+                return `
+                    <div class="product-card">
+                        <div class="product-image">
+                            ${product.image}
+                            <span>Image du produit</span>
+                        </div>
+                        <div class="product-info">
+                            <div class="product-title">${product.title}</div>
+                            <div class="product-meta">
+                                <span class="product-type">${product.type}</span>
+                                <span class="product-metal">${product.metal}</span>
+                            </div>
+                            <div class="product-price">${product.price}€</div>
+                            <div class="product-description">${product.description}</div>
+                            
+                            ${hasSizes ? `
+                                <div class="size-selection">
+                                    <label class="size-label">Taille de bague :</label>
+                                    <div class="size-options">
+                                        ${availableSizes.map(size => `
+                                            <div class="size-option ${product.availableSizes.includes(size) ? '' : 'unavailable'} ${selectedSize === size ? 'selected' : ''}" 
+                                                 onclick="selectSize(${product.id}, ${size})" 
+                                                 ${!product.availableSizes.includes(size) ? 'style="cursor: not-allowed;"' : ''}>
+                                                ${size}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="product-actions">
+                                <button class="add-to-cart" onclick="addToCart(${product.id})">
+                                    Ajouter au panier
+                                </button>
+                                <button class="order-btn" ${!canOrder ? 'disabled' : ''} onclick="orderProduct(${product.id})">
+                                    Commander
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Fonction pour sélectionner une taille
+        function selectSize(productId, size) {
+            const product = products.find(p => p.id === productId);
+            if (product && product.availableSizes && product.availableSizes.includes(size)) {
+                selectedSizes[productId] = size;
+                displayProducts(products); // Re-render pour mettre à jour l'affichage
+            }
+        }
+
+        // Fonction pour commander un produit
+        function orderProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            const selectedSize = selectedSizes[productId];
+            
+            // Préparer les paramètres pour la page de commande
+            let params = `productId=${productId}`;
+            if (selectedSize) {
+                params += `&taille=${selectedSize}`;
+            }
+            if (product) {
+                params += `&produit=${encodeURIComponent(product.title)}`;
+                params += `&prix=${product.price}`;
+            }
+            
+            // Redirection vers la page de commande
+            window.location.href = `commande.html?${params}`;
+        }
+
+        // Fonction pour filtrer les produits
+        function filterProducts() {
+            const typeFilter = document.getElementById('type-filter').value;
+            const metalFilter = document.getElementById('metal-filter').value;
+            const priceFilter = document.getElementById('price-filter').value;
+            
+            const filteredProducts = products.filter(product => {
+                const typeMatch = !typeFilter || product.type === typeFilter;
+                const metalMatch = !metalFilter || product.metal === metalFilter;
+                const priceMatch = !priceFilter || product.price <= parseInt(priceFilter);
+                
+                return typeMatch && metalMatch && priceMatch;
+            });
+            
+            displayProducts(filteredProducts);
+        }
+
+        // Fonction pour réinitialiser les filtres
+        function resetFilters() {
+            document.getElementById('type-filter').value = '';
+            document.getElementById('metal-filter').value = '';
+            document.getElementById('price-filter').value = '';
+            displayProducts(products);
+        }
+
+        // Fonction pour ajouter au panier
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const selectedSize = selectedSizes[productId];
+            
+            let message = `Produit "${product.title}" ajouté au panier !`;
+            if (selectedSize) {
+                message += ` Taille : ${selectedSize}`;
+            }
+            
+            alert(message);
+            // Ici vous ajouterez la logique du panier
+        }
+
+        // Écouteurs d'événements pour les filtres
+        document.getElementById('type-filter').addEventListener('change', filterProducts);
+        document.getElementById('metal-filter').addEventListener('change', filterProducts);
+        document.getElementById('price-filter').addEventListener('change', filterProducts);
+
+        // Afficher tous les produits au chargement
+        displayProducts(products);
+    </script>
 </body>
 </html>
