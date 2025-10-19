@@ -6,3 +6,6 @@ final_index.html
 clean_index.html
 indexesssai.html
 INDEX181025/
+
+# Local Netlify folder
+.netlify
