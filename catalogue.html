@@ -206,20 +206,17 @@ nav a {
     <div class="products-grid" id="products-grid"></div>
 </div>
 <script>
-// ID de votre Google Sheet (la partie entre /e/ et /pub)
-const SHEET_ID = '2PACX-1vTFPt61HeN0sqxFCYaBHhJY5WELXc2fpjDiLLMPhbWaCK7Q7dW8Qk6QhjqMNtAX_wYpIT_6tfSm3NWO';
-
 // URL complète pour accéder au CSV publié
-const API_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
+const API_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFPt61HeN0sqxFCYaBHhJY5WELXc2fpjDiLLMPhbWaCK7Q7dW8Qk6QhjqMNtAX_wYpIT_6tfSm3NWO/pub?output=csv';
 
 // Tailles disponibles pour les bagues
 const availableSizes = [48,50,52,54,56,58,60];
 
-// Stockage des produits et sélections
+// Stockage des produits et sélection
 let products = [];
 const selectedSizes = {};
 
-// Charger les données depuis Google Sheets
+// Charger les produits depuis Google Sheets
 async function loadProductsFromGoogleSheets() {
     try {
         const response = await fetch(API_URL);
@@ -229,7 +226,7 @@ async function loadProductsFromGoogleSheets() {
         displayProducts(products);
     } catch (error) {
         console.error('Erreur lors du chargement des produits:', error);
-        document.getElementById('products-grid').innerHTML = 
+        document.getElementById('products-grid').innerHTML =
             '<div class="no-products">Erreur de chargement du catalogue. Veuillez réessayer plus tard.</div>';
     }
 }
@@ -238,13 +235,13 @@ async function loadProductsFromGoogleSheets() {
 function parseCSV(csvText) {
     const lines = csvText.split('\n').filter(line => line.trim() !== '');
     if (lines.length === 0) return [];
-    
+
     const headers = lines[0].split(',').map(header => header.trim().toLowerCase());
-    
+
     return lines.slice(1).map((line, index) => {
         const values = line.split(',').map(value => value.trim());
         const product = { id: index + 1 };
-        
+
         headers.forEach((header, i) => {
             const value = values[i] || '';
             switch(header) {
@@ -268,26 +265,26 @@ function parseCSV(csvText) {
                 default: product[header] = value;
             }
         });
+
         return product;
     }).filter(product => product.titre && product.prix > 0);
 }
 
-// Remplir les options de filtres
+// Remplir les filtres
 function populateFilterOptions() {
     const types = [...new Set(products.map(p => p.type).filter(Boolean))];
     const couleurs = [...new Set(products.map(p => p.couleur).filter(Boolean))];
-    const pierres = [...new Set(products.map(p => p.pierres).filter(Boolean))];
-    
+
     const typeFilter = document.getElementById('type-filter');
     const metalFilter = document.getElementById('metal-filter');
-    
+
     types.forEach(type => {
         const option = document.createElement('option');
         option.value = type;
         option.textContent = type;
         typeFilter.appendChild(option);
     });
-    
+
     couleurs.forEach(couleur => {
         const option = document.createElement('option');
         option.value = couleur;
@@ -299,18 +296,18 @@ function populateFilterOptions() {
 // Afficher les produits
 function displayProducts(productsToShow) {
     const grid = document.getElementById('products-grid');
-    
+
     if (productsToShow.length === 0) {
         grid.innerHTML = '<div class="no-products">Aucun produit ne correspond à vos critères de recherche.</div>';
         return;
     }
-    
+
     grid.innerHTML = productsToShow.map(product => {
         if (!selectedSizes[product.id]) selectedSizes[product.id] = product.availableSizes ? product.availableSizes[0] : null;
         const hasSizes = product.availableSizes && product.availableSizes.length > 0;
         const selectedSize = selectedSizes[product.id];
         const canOrder = !hasSizes || selectedSize;
-        
+
         return `
             <div class="product-card">
                 <div class="product-image" style="background-image: url('${product.image || ''}')">
@@ -324,7 +321,7 @@ function displayProducts(productsToShow) {
                         <span class="product-metal">${product.couleur || ''}</span>
                     </div>
                     <div class="product-price">${product.prix || 0}€</div>
-                    
+
                     ${hasSizes ? `
                         <div class="size-selection">
                             <label class="size-label">Taille de bague :</label>
@@ -339,7 +336,7 @@ function displayProducts(productsToShow) {
                             </div>
                         </div>
                     ` : ''}
-                    
+
                     <div class="product-actions">
                         <button class="add-to-cart" onclick="addToCart(${product.id})">Ajouter au panier</button>
                         <button class="order-btn" ${!canOrder ? 'disabled' : ''} onclick="orderProduct(${product.id})">Commander</button>
@@ -387,14 +384,14 @@ function filterProducts() {
     const typeFilter = document.getElementById('type-filter').value;
     const metalFilter = document.getElementById('metal-filter').value;
     const priceFilter = document.getElementById('price-filter').value;
-    
+
     const filteredProducts = products.filter(product => {
         const typeMatch = !typeFilter || product.type === typeFilter;
         const metalMatch = !metalFilter || product.couleur === metalFilter;
         const priceMatch = !priceFilter || (product.prix && product.prix <= parseInt(priceFilter));
         return typeMatch && metalMatch && priceMatch;
     });
-    
+
     displayProducts(filteredProducts);
 }
 
