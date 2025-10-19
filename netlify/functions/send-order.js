@@ -4,7 +4,7 @@ export async function handler(event) {
   try {
     const data = JSON.parse(event.body);
 
-    // Données attendues : { cart: [...], email: "client@example.com" }
+    // Données attendues : { cart: [...], email: "bijouchouchou@uptogold.fr" }
     const cart = data.cart;
     const total = cart.reduce((sum, p) => sum + p.prix, 0);
 
@@ -23,8 +23,8 @@ export async function handler(event) {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.ORDER_EMAIL_USER, // bijouchou@gmail.com
-        pass: process.env.ORDER_EMAIL_PASS, // mot de passe application Gmail
+        user: process.env.ORDER_EMAIL_USER, // "bijouchou@gmail.com"
+        pass: process.env.ORDER_EMAIL_PASS, // "7eUv4DrmgKv"
       }
     });
 
