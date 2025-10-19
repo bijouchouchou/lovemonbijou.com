@@ -282,8 +282,8 @@
         </div>
     </div>
 
-    <script>
-        // Configuration Google Sheets - VOTRE ID
+  <script>
+    // Configuration Google Sheets - VOTRE ID
     const SHEET_ID = '1TFPt61HeN0sqxFCYaBHhJY5WELXc2fpjDiLLMPhbWaCK7Q7dW8Qk6QhjqMNtAX_wYpIT_6tfSm3NWO';
     const API_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
 
@@ -479,7 +479,7 @@
         const product = products.find(p => p.id === productId);
         if (product && product.availableSizes && product.availableSizes.includes(size)) {
             selectedSizes[productId] = size;
-            displayProducts(products); // Re-render pour mettre à jour l'affichage
+            displayProducts(products);
         }
     }
 
@@ -488,7 +488,6 @@
         const product = products.find(p => p.id === productId);
         const selectedSize = selectedSizes[productId];
         
-        // Préparer les paramètres pour la page de commande
         let params = `productId=${productId}`;
         if (selectedSize) {
             params += `&taille=${selectedSize}`;
@@ -499,7 +498,6 @@
             params += `&prix=${product.prix || 0}`;
         }
         
-        // Redirection vers la page de commande
         window.location.href = `commande.html?${params}`;
     }
 
@@ -543,9 +541,6 @@
         
         alert(message);
     }
-
-    // Écouteurs d'événements pour les filtres
-       }
 
     // CORRECTION : Attendre que le DOM soit chargé
     document.addEventListener('DOMContentLoaded', function() {
