@@ -276,28 +276,31 @@ cat > catalogue_new.html << 'EOF'
             displayProducts(filteredProducts);
         }
 
-        function resetFilters() {
-            document.getElementById('type-filter').value = '';
-            document.getElementById('metal-filter').value = '';
-            document.getElementById('pierre-filter').value = '';
-            document.getElementById('price-filter').value = '';
-            displayProducts(products);
+            // Fonction pour ajouter au panier
+    function addToCart(productId) {
+        const product = products.find(p => p.id === productId);
+        const selectedSize = selectedSizes[productId];
+        
+        let message = `Produit "${product.titre}" ajouté au panier !`;
+        if (selectedSize) {
+            message += ` Taille : ${selectedSize}`;
         }
+        
+        alert(message);
+    }
 
-        function addToCart(productId) {
-            const product = products.find(p => p.id === productId);
-            const selectedSize = selectedSizes[productId];
-            let message = `Produit "${product.titre}" ajouté au panier !`;
-            if (selectedSize) message += ` Taille : ${selectedSize}`;
-            alert(message);
-        }
+    // CORRECTION : Attendre que le DOM soit chargé
+    document.addEventListener('DOMContentLoaded', function() {
+        // Écouteurs d'événements pour les filtres
+        document.getElementById('type-filter').addEventListener('change', filterProducts);
+        document.getElementById('metal-filter').addEventListener('change', filterProducts);
+        document.getElementById('pierre-filter').addEventListener('change', filterProducts);
+        document.getElementById('price-filter').addEventListener('change', filterProducts);
 
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('type-filter').addEventListener('change', filterProducts);
-            document.getElementById('metal-filter').addEventListener('change', filterProducts);
-            document.getElementById('pierre-filter').addEventListener('change', filterProducts);
-            document.getElementById('price-filter').addEventListener('change', filterProducts);
-            loadProductsFromGoogleSheets();
+        // Charger les produits au démarrage
+        loadProductsFromGoogleSheets();
+    });
+
         });
     </script>
 </body>
