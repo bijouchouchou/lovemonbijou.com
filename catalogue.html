@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Catalogue - Bijouterie Élégance</title>
+    <title>Catalogue - Love Mon Bijou</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -28,23 +28,24 @@
             font-weight: bold; 
         }
         .content { 
-            margin-top: 60px; 
+            margin-top: 80px; 
             padding: 20px; 
             text-align: center;
         }
-        .products {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-        .product {
-            background: white;
-            padding: 15px;
+        .sheet-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 70vh;
+            border: none;
             border-radius: 10px;
-            width: 250px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            background: white;
+        }
+        .loading {
+            padding: 40px;
+            font-style: italic;
+            color: #666;
         }
     </style>
 </head>
@@ -58,29 +59,18 @@
     </nav>
     
     <div class="content">
-        <h1>📚 Notre Catalogue</h1>
+        <h1>📿 Catalogue Love Mon Bijou</h1>
         <p>Découvrez notre magnifique collection de bijoux personnalisés.</p>
         
-        <div class="products">
-            <div class="product">
-                <h3>Bague Élégance</h3>
-                <p>Bague en argent avec pierre précieuse</p>
-                <p><strong>89€</strong></p>
-            </div>
-            <div class="product">
-                <h3>Collier Perle</h3>
-                <p>Collier avec perle naturelle</p>
-                <p><strong>120€</strong></p>
-            </div>
-            <div class="product">
-                <h3>Bracelet Argent</h3>
-                <p>Bracelet en argent massif</p>
-                <p><strong>65€</strong></p>
-            </div>
-        </div>
+        <!-- Intégration Google Sheets -->
+        <iframe class="sheet-container" 
+                src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTFPt61HeN0sqxFCYaBHhJY5WELXc2fpjDiLLMPhbWaCK7Q7dW8Qk6QhjqMNtAX_wYpIT_6tfSm3NWO/pubhtml?gid=824897907&amp;single=true&amp;widget=true&amp;headers=false"
+                loading="lazy">
+            <div class="loading">Chargement du catalogue...</div>
+        </iframe>
         
-        <p style="margin-top: 30px;">
-            <em>Notre catalogue complet arrive bientôt !</em>
+        <p style="margin-top: 20px; color: #666;">
+            <em>Notre catalogue est mis à jour régulièrement</em>
         </p>
     </div>
 </body>
