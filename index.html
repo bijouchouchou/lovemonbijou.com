@@ -122,8 +122,8 @@ function populateTable() {
     if (selectedType) filtered = filtered.filter(p => p.couleur === selectedType);
     if (selectedTitle) filtered = filtered.filter(p => p.titre === selectedTitle);
 
-    if (priceSort === 'asc') filtered.sort((a, b) => a.prix - b.prix);
-    if (priceSort === 'desc') filtered.sort((a, b) => b.prix - a.prix);
+    if (priceSort === 'asc') filtered.sort((a, b) => a.price - b.prix);
+    if (priceSort === 'desc') filtered.sort((a, b) => b.price - a.prix);
 
     filtered.forEach((p, index) => {
         const tr = document.createElement('tr');
@@ -133,7 +133,7 @@ function populateTable() {
             <td>${p.or}</td>
             <td>${p.poids}</td>
             <td>${parseSizes(p.autre_pierre)}</td>
-            <td>${p.prix.toFixed(2)}</td>
+            <td>${p.price.toFixed(2)}</td>
             <td><button data-index="${index}">Ajouter</button></td>
         `;
         tbody.appendChild(tr);
@@ -158,9 +158,9 @@ function updateCart() {
     let total = 0;
     cart.forEach((p) => {
         const li = document.createElement('li');
-        li.textContent = `${p.titre} - €${p.prix.toFixed(2)}`;
+        li.textContent = `${p.titre} - €${p.priceSort.toFixed(2)}`;
         cartList.appendChild(li);
-        total += p.prix;
+        total += p.price;
     });
     document.getElementById('cartTotal').textContent = total.toFixed(2);
 }
