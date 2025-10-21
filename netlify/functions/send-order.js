@@ -14,7 +14,7 @@ export async function handler(event) {
     }
 
     // Calcul du total
-    const total = cart.reduce((sum, p) => sum + p.prix, 0);
+    const total = cart.reduce((sum, p) => sum + p.price, 0);
 
     // Génération du contenu HTML de l'email
     const htmlContent = `
