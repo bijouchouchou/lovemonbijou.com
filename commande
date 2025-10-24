@@ -2,171 +2,123 @@
   <h1>Catalogue Interactif avec Commande</h1>
 
   <div>
-    <label for="typeSelect">Type de produit:</label>
-    <select id="typeSelect">
-        <option value="">--Tous les types--</option>
-    </select>
-
-    <label for="titleSelect">Titre du produit:</label>
+    <label for="titleSelect">Produit :</label>
     <select id="titleSelect">
-        <option value="">--Tous les titres--</option>
+      <option value="">--Tous les produits--</option>
     </select>
 
-    <label for="priceSort">Trier par prix:</label>
+    <label for="priceSort">Trier par prix :</label>
     <select id="priceSort">
-        <option value="">--Aucun--</option>
-        <option value="asc">Prix croissant</option>
-        <option value="desc">Prix décroissant</option>
+      <option value="">--Aucun--</option>
+      <option value="asc">Prix croissant</option>
+      <option value="desc">Prix décroissant</option>
     </select>
   </div>
 
   <table id="productTable">
-      <thead>
-          <tr>
-              <th>Titre</th>
-              <th>Couleur</th>
-              <th>Or</th>
-              <th>Poids</th>
-              <th>Quantités par taille</th>
-              <th>Prix (€)</th>
-              <th>Taille</th>
-              <th>Quantité</th>
-              <th>Commande</th>
-          </tr>
-      </thead>
-      <tbody></tbody>
+    <thead>
+      <tr>
+        <th>Produit</th>
+        <th>Description</th>
+        <th>Tailles disponibles</th>
+        <th>Prix (€)</th>
+        <th>Taille</th>
+        <th>Quantité</th>
+        <th>Commander</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
   </table>
 
   <script>
-  let products = [];
-  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    let products = [];
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
-  async function loadProducts() {
+    async function loadProducts() {
       try {
-          const res = await fetch('/.netlify/functions/get-products');
-          if (!res.ok) throw new Error('Erreur lors du chargement des produits');
-          products = await res.json();
-
-          populateTypeDropdown();
-          populateTable();
+        const res = await fetch('/.netlify/functions/get-products');
+        if (!res.ok) throw new Error('Erreur lors du chargement des produits');
+        products = await res.json();
+        populateTitleDropdown();
+        populateTable();
       } catch (err) {
-          console.error(err);
-          alert('Impossible de charger le catalogue. Vérifiez la console.');
+        console.error(err);
+        alert('Impossible de charger le catalogue. Vérifiez la console.');
       }
-  }
+    }
 
-  function populateTypeDropdown() {
-      const typeSelect = document.getElementById('typeSelect');
-      const types = [...new Set(products.map(p => p.couleur))];
-      types.forEach(type => {
-          const option = document.createElement('option');
-          option.value = type;
-          option.textContent = type;
-          typeSelect.appendChild(option);
-      });
-  }
-
-  function populateTitleDropdown(selectedType) {
+    function populateTitleDropdown() {
       const titleSelect = document.getElementById('titleSelect');
-      titleSelect.innerHTML = '<option value="">--Tous les titres--</option>';
-      const filtered = selectedType ? products.filter(p => p.couleur === selectedType) : products;
-      const titles = [...new Set(filtered.map(p => p.titre))];
+      const titles = [...new Set(products.map(p => p.name))];
       titles.forEach(title => {
-          const option = document.createElement('option');
-          option.value = title;
-          option.textContent = title;
-          titleSelect.appendChild(option);
+        const option = document.createElement('option');
+        option.value = title;
+        option.textContent = title;
+        titleSelect.appendChild(option);
       });
-  }
+    }
 
-  function parseSizes(sizesField) {
-      if (!sizesField) return [];
-      try {
-          return JSON.parse(sizesField); // [{size, quantity}, ...]
-      } catch (err) {
-          console.warn('Impossible de parser les tailles:', sizesField);
-          return [];
-      }
-  }
-
-  function addToCart(reference, selectedSize, quantity) {
-      const product = products.find(p => p.reference === reference);
+    function addToCart(productId, selectedSize, quantity) {
+      const product = products.find(p => p.id === productId);
       if (!product) return alert('Produit introuvable');
       if (!selectedSize) return alert('Veuillez sélectionner une taille.');
-      if (!quantity || quantity < 1) return alert('Veuillez sélectionner une quantité valide.');
+      if (!quantity || quantity < 1) return alert('Veuillez saisir une quantité valide.');
 
       cart.push({
-          reference: product.reference,
-          titre: product.titre,
-          prix: product.prix,
-          taille: selectedSize,
-          quantity: parseInt(quantity, 10)
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        size: selectedSize,
+        quantity: parseInt(quantity, 10)
       });
-      localStorage.setItem('cart', JSON.stringify(cart));
-      alert(`Produit "${product.titre}" (${selectedSize}) x${quantity} ajouté au panier !`);
-  }
 
-  function populateTable() {
+      localStorage.setItem('cart', JSON.stringify(cart));
+      alert(`"${product.name}" (${selectedSize}) x${quantity} ajouté au panier !`);
+    }
+
+    function populateTable() {
       const tbody = document.querySelector('#productTable tbody');
       tbody.innerHTML = '';
 
-      const selectedType = document.getElementById('typeSelect').value;
       const selectedTitle = document.getElementById('titleSelect').value;
       const priceSort = document.getElementById('priceSort').value;
 
       let filtered = products;
-      if (selectedType) filtered = filtered.filter(p => p.couleur === selectedType);
-      if (selectedTitle) filtered = filtered.filter(p => p.titre === selectedTitle);
+      if (selectedTitle) filtered = filtered.filter(p => p.name === selectedTitle);
 
-      if (priceSort === 'asc') filtered.sort((a,b) => a.prix - b.prix);
-      if (priceSort === 'desc') filtered.sort((a,b) => b.prix - a.prix);
+      if (priceSort === 'asc') filtered.sort((a, b) => a.price - b.price);
+      if (priceSort === 'desc') filtered.sort((a, b) => b.price - a.price);
 
       filtered.forEach(p => {
-          const sizesArray = parseSizes(p.autre_pierre);
-          const sizeOptions = sizesArray.map(s => 
-              `<option value="${s.size}">${s.size} (${s.quantity})</option>`
-          ).join('');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${p.name}</td>
+          <td>${p.description}</td>
+          <td>${p.sizes.join(', ')}</td>
+          <td>${p.price.toFixed(2)}</td>
+          <td>
+            <select class="sizeSelect">
+              <option value="">--Choisir--</option>
+              ${p.sizes.map(size => `<option value="${size}">${size}</option>`).join('')}
+            </select>
+          </td>
+          <td><input type="number" class="qtyInput" min="1" value="1" style="width:50px"></td>
+          <td><button class="orderBtn">Commander</button></td>
+        `;
+        tbody.appendChild(tr);
 
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-              <td>${p.titre}</td>
-              <td>${p.couleur}</td>
-              <td>${p.or}</td>
-              <td>${p.poids}</td>
-              <td>${sizesArray.map(s => `${s.size}: ${s.quantity}`).join('<br>')}</td>
-              <td>${p.prix.toFixed(2)}</td>
-              <td>
-                  <select class="sizeSelect">
-                      <option value="">--Choisir--</option>
-                      ${sizeOptions}
-                  </select>
-              </td>
-              <td>
-                  <input type="number" class="qtyInput" min="1" value="1" style="width:50px">
-              </td>
-              <td><button class="orderBtn">Commander</button></td>
-          `;
-          tbody.appendChild(tr);
-
-          const btn = tr.querySelector('.orderBtn');
-          const select = tr.querySelector('.sizeSelect');
-          const qtyInput = tr.querySelector('.qtyInput');
-
-          btn.addEventListener('click', () => {
-              addToCart(p.reference, select.value, qtyInput.value);
-          });
+        const btn = tr.querySelector('.orderBtn');
+        const select = tr.querySelector('.sizeSelect');
+        const qtyInput = tr.querySelector('.qtyInput');
+        btn.addEventListener('click', () => {
+          addToCart(p.id, select.value, qtyInput.value);
+        });
       });
-  }
+    }
 
-  document.getElementById('typeSelect').addEventListener('change', e => {
-      const type = e.target.value;
-      populateTitleDropdown(type);
-      populateTable();
-  });
+    document.getElementById('titleSelect').addEventListener('change', populateTable);
+    document.getElementById('priceSort').addEventListener('change', populateTable);
 
-  document.getElementById('titleSelect').addEventListener('change', populateTable);
-  document.getElementById('priceSort').addEventListener('change', populateTable);
-
-  loadProducts();
+    loadProducts();
   </script>
 </main>
