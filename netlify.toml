@@ -2,6 +2,9 @@
   command = ""
   publish = "."
 
+[functions]
+  directory = "netlify/functions"
+
 [[headers]]
   for = "/*.html"
   [headers.values]
@@ -13,9 +16,11 @@
     Content-Type = "text/html; charset=UTF-8"
 
 [[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[functions]
-  directory = "netlify/functions"
