@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Votre Panier - Bijouterie Élégance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #fafafa; color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border-bottom: 1px solid #ccc; text-align: center; }
+    th { background-color: #f0f0f0; }
+    button { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; }
+    .delete { background-color: #e74c3c; color: white; }
+    .update { background-color: #3498db; color: white; }
+    #checkout { background-color: #2ecc71; color: white; padding: 10px 15px; font-size: 16px; border-radius: 5px; margin-top: 20px; }
+    #total { font-weight: bold; font-size: 18px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Votre Panier</h1>
+
+  <table id="cartTable">
+    <thead>
+      <tr>
+        <th>Produit</th>
+        <th>Taille</th>
+        <th>Quantité</th>
+        <th>Prix unitaire (€)</th>
+        <th>Total (€)</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="total"></div>
+  <button id="checkout">Passer la commande</button>
+
+  <script>
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const tbody = document.querySelector('#cartTable tbody');
+    const totalDiv = document.getElementById('total');
+
+    function renderCart() {
+      tbody.innerHTML = '';
+      if (cart.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6">Votre panier est vide.</td></tr>';
+        totalDiv.textContent = '';
+        return;
+      }
+
+      let total = 0;
+      cart.forEach((item, index) => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.titre}</td>
+          <td>${item.taille}</td>
+          <td>
+            <input type="number" min="1" value="${item.quantity}" style="width:50px">
+          </td>
+          <td>${item.price.toFixed(2)}</td>
+          <td>${itemTotal.toFixed(2)}</td>
+          <td>
+            <button class="update">Mettre à jour</button>
+            <button class="delete">Supprimer</button>
+          </td>
+        `;
+
+        // Actions sur les boutons
+        const qtyInput = tr.querySelector('input');
+        const updateBtn = tr.querySelector('.update');
+        const deleteBtn = tr.querySelector('.delete');
+
+        updateBtn.addEventListener('click', () => {
+          const newQty = parseInt(qtyInput.value);
+          if (newQty > 0) {
+            cart[index].quantity = newQty;
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+          }
+        });
+
+        deleteBtn.addEventListener('click', () => {
+          cart.splice(index, 1);
+          localStorage.setItem('cart', JSON.stringify(cart));
+          renderCart();
+        });
+
+        tbody.appendChild(tr);
+      });
+
+      totalDiv.textContent = `Total à payer : ${total.toFixed(2)} €`;
+    }
+
+    // Envoi de la commande à Netlify
+    document.getElementById('checkout').addEventListener('click', async () => {
+      if (cart.length === 0) return alert('Votre panier est vide !');
+
+      try {
+        const res = await fetch('/.netlify/functions/send-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cart })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert('Commande envoyée avec succès !');
+          localStorage.removeItem('cart');
+          renderCart();
+        } else {
+          alert('Erreur : ' + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Erreur de communication avec le serveur.');
+      }
+    });
+
+    renderCart();
+  </script>
+</body>
+</html>
