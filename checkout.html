@@ -1,17 +1,179 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Paiement réussi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panier - Bijouterie Élégance</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+  th { background-color: #f0f0f0; }
+  input[type=number] { width: 50px; }
+  button { padding: 5px 10px; margin: 5px; cursor: pointer; }
+  #empty-cart { margin-top: 20px; font-weight: bold; color: red; }
+</style>
 </head>
 <body>
-  <h1>Merci pour votre commande !</h1>
-  <p>Votre paiement a été effectué avec succès.</p>
-  <p>Session ID : <span id="sessionId"></span></p>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    document.getElementById('sessionId').textContent = params.get('session_id') || 'N/A';
-  </script>
+<h1>Votre Panier</h1>
+
+<table id="cartTable">
+  <thead>
+    <tr>
+      <th>Produit</th>
+      <th>Taille</th>
+      <th>Quantité</th>
+      <th>Prix unitaire (€)</th>
+      <th>Total (€)</th>
+      <th>Supprimer</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div id="empty-cart" style="display:none;">Votre panier est vide.</div>
+
+<h2>Total général : €<span id="grandTotal">0.00</span></h2>
+
+<div>
+  <button id="stripeBtn">Payer avec Stripe</button>
+  <button id="almaBtn">Payer avec Alma (en plusieurs fois)</button>
+  <div id="paypal-button-container"></div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_SANDBOX_CLIENT_ID&currency=EUR"></script>
+<script>
+let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+const cartTableBody = document.querySelector('#cartTable tbody');
+const grandTotalEl = document.getElementById('grandTotal');
+const emptyCartEl = document.getElementById('empty-cart');
+
+function updateCartDisplay() {
+  cartTableBody.innerHTML = '';
+  if(cart.length === 0) {
+    emptyCartEl.style.display = 'block';
+    grandTotalEl.textContent = '0.00';
+    return;
+  }
+  emptyCartEl.style.display = 'none';
+  let grandTotal = 0;
+
+  cart.forEach((item, index) => {
+    const total = item.price * item.quantity;
+    grandTotal += total;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.titre}</td>
+      <td>${item.taille}</td>
+      <td><input type="number" value="${item.quantity}" min="1" data-index="${index}" class="qtyInput"></td>
+      <td>${item.price.toFixed(2)}</td>
+      <td>${total.toFixed(2)}</td>
+      <td><button data-index="${index}" class="removeBtn">Supprimer</button></td>
+    `;
+    cartTableBody.appendChild(tr);
+  });
+
+  grandTotalEl.textContent = grandTotal.toFixed(2);
+
+  document.querySelectorAll('.qtyInput').forEach(input => {
+    input.addEventListener('change', e => {
+      const idx = e.target.dataset.index;
+      let q = parseInt(e.target.value);
+      if(q < 1) q = 1;
+      cart[idx].quantity = q;
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateCartDisplay();
+    });
+  });
+
+  document.querySelectorAll('.removeBtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = e.target.dataset.index;
+      cart.splice(idx, 1);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateCartDisplay();
+    });
+  });
+}
+
+// --- Stripe ---
+async function payWithStripe() {
+  if(cart.length === 0) return alert("Votre panier est vide !");
+  try {
+    const res = await fetch('/.netlify/functions/create-checkout-session', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ cart })
+    });
+    const data = await res.json();
+    if(res.ok) {
+      const stripe = Stripe('pk_test_PASTE_YOUR_STRIPE_PUBLISHABLE_KEY');
+      await stripe.redirectToCheckout({ sessionId: data.id });
+    } else {
+      console.error(data.error);
+      alert("Erreur lors de la création de la session Stripe");
+    }
+  } catch(err) {
+    console.error(err);
+    alert("Erreur réseau lors du paiement Stripe");
+  }
+}
+
+// --- Alma ---
+async function payWithAlma() {
+  if(cart.length === 0) return alert("Votre panier est vide !");
+  try {
+    const res = await fetch('/.netlify/functions/create-alma-session', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ cart })
+    });
+    const data = await res.json();
+    if(res.ok && data.checkout_url) {
+      window.location.href = data.checkout_url;
+    } else {
+      console.error(data.error);
+      alert("Erreur lors de la création de la session Alma");
+    }
+  } catch(err) {
+    console.error(err);
+    alert("Erreur réseau lors du paiement Alma");
+  }
+}
+
+// --- PayPal ---
+paypal.Buttons({
+  style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
+  createOrder: function(data, actions) {
+    return fetch('/.netlify/functions/create-paypal-order', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ cart })
+    })
+    .then(res => res.json())
+    .then(order => order.id);
+  },
+  onApprove: function(data, actions) {
+    return fetch('/.netlify/functions/capture-paypal-order', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ orderID: data.orderID })
+    })
+    .then(res => res.json())
+    .then(details => {
+      alert(`Transaction réussie: ${details.payer.name.given_name}`);
+      localStorage.removeItem('cart');
+      updateCartDisplay();
+    });
+  }
+}).render('#paypal-button-container');
+
+document.getElementById('stripeBtn').addEventListener('click', payWithStripe);
+document.getElementById('almaBtn').addEventListener('click', payWithAlma);
+
+updateCartDisplay();
+</script>
 </body>
 </html>
