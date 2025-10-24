@@ -3,57 +3,40 @@ import nodemailer from 'nodemailer';
 
 export async function handler(event) {
   try {
-    // Récupération du panier depuis le body
-    const { cart } = JSON.parse(event.body);
-
-    if (!cart || cart.length === 0) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Le panier est vide.' })
-      };
+    const { cart, email } = JSON.parse(event.body || '{}');
+    if (!cart || !email) {
+      return { statusCode: 400, body: 'Données manquantes' };
     }
 
-    // Calcul du total
-    const total = cart.reduce((sum, p) => sum + p.price, 0);
+    // Exemple SMTP test (à remplacer par tes infos réelles)
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
 
-    // Génération du contenu HTML de l'email
-    const htmlContent = `
+    const total = cart.reduce((sum, p) => sum + p.price * p.quantity, 0);
+
+    const html = `
       <h2>Nouvelle commande</h2>
       <ul>
-        ${cart.map(p => `<li>${p.titre} - ${p.couleur} - €${p.prix.toFixed(2)}</li>`).join('')}
+        ${cart.map(p => `<li>${p.titre} (${p.size}) x${p.quantity} - €${p.price.toFixed(2)}</li>`).join('')}
       </ul>
-      <p><strong>Total: €${total.toFixed(2)}</strong></p>
+      <p>Total: €${total.toFixed(2)}</p>
     `;
 
-    // Configuration du transporteur SMTP Infomaniak
-    const transporter = nodemailer.createTransport({
-      host: 'mail.infomaniak.com',
-      port: 465,       // SSL
-      secure: true,    // true car SSL
-      auth: {
-        user: process.env.ORDER_EMAIL_USER,
-        pass: process.env.ORDER_EMAIL_PASS
-      }
-    });
-
-    // Envoi de l'email
     await transporter.sendMail({
-      from: process.env.ORDER_EMAIL_USER,
-      to: process.env.ORDER_EMAIL_USER,
-      subject: 'Nouvelle commande',
-      html: htmlContent
+      from: process.env.SMTP_FROM,
+      to: email,
+      subject: 'Confirmation de commande',
+      html,
     });
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'Commande envoyée avec succès !' })
-    };
-
+    return { statusCode: 200, body: JSON.stringify({ message: 'Email envoyé !' }) };
   } catch (err) {
-    console.error('Erreur lors de l’envoi de la commande :', err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message })
-    };
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 }
