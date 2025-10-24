@@ -13,7 +13,7 @@ export async function handler() {
       reference: p.id || p.reference || '',
       titre: p.name || p.titre || '',
       couleur: p.color || p.couleur || '',
-      price: p.price || p.prix || 0,
+      price: p.price || p.price || 0,
       or: p.or || null,
       poids: p.weight || p.poids || null,
       sizes: p.sizes || p.sizesField || null,
