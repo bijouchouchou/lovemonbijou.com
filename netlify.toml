@@ -1,7 +1,7 @@
 [build]
-  # Pas de commande de build nécessaire pour ce projet statique
   command = "echo 'skip build'"
-  publish = "."
+  publish = "main"
+
 
 [functions]
   directory = "netlify/functions"
