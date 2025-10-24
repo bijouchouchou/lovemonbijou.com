@@ -1,124 +1,245 @@
-<main>
-  <h1>Catalogue Interactif avec Commande</h1>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Catalogue et Commande - LoveMonBijou</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+  th { background-color: #f5f5f5; }
+  select, input[type=number], button { padding: 5px; margin: 5px 0; }
+  #paiement { margin-top: 30px; padding: 20px; border: 1px solid #ccc; border-radius: 12px; }
+  #paiement label { cursor: pointer; margin-right: 15px; }
+  #payerBtn { margin-top: 20px; padding: 10px 20px; background: #007b00; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+</style>
+</head>
+<body>
 
+<h1>Catalogue Interactif avec Commande</h1>
+
+<!-- Filtres -->
+<div>
+  <label for="typeSelect">Type de produit:</label>
+  <select id="typeSelect">
+    <option value="">--Tous les types--</option>
+  </select>
+
+  <label for="titleSelect">Titre du produit:</label>
+  <select id="titleSelect">
+    <option value="">--Tous les titres--</option>
+  </select>
+
+  <label for="priceSort">Trier par prix:</label>
+  <select id="priceSort">
+    <option value="">--Aucun--</option>
+    <option value="asc">Prix croissant</option>
+    <option value="desc">Prix décroissant</option>
+  </select>
+</div>
+
+<!-- Tableau produit -->
+<table id="productTable">
+  <thead>
+    <tr>
+      <th>Titre</th>
+      <th>Couleur</th>
+      <th>Or</th>
+      <th>Poids</th>
+      <th>Quantités par taille</th>
+      <th>Prix (€)</th>
+      <th>Taille</th>
+      <th>Quantité</th>
+      <th>Commande</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<!-- Paiement -->
+<section id="paiement">
+  <h2>Choisissez votre moyen de paiement</h2>
   <div>
-    <label for="titleSelect">Produit :</label>
-    <select id="titleSelect">
-      <option value="">--Tous les produits--</option>
-    </select>
-
-    <label for="priceSort">Trier par prix :</label>
-    <select id="priceSort">
-      <option value="">--Aucun--</option>
-      <option value="asc">Prix croissant</option>
-      <option value="desc">Prix décroissant</option>
-    </select>
+    <label><input type="radio" name="paymentMethod" value="stripe" checked> 💳 Carte bancaire (Stripe)</label>
+    <label><input type="radio" name="paymentMethod" value="paypal"> 🅿️ PayPal</label>
+    <label><input type="radio" name="paymentMethod" value="alma"> 💰 Paiement 3x (Alma)</label>
   </div>
 
-  <table id="productTable">
-    <thead>
-      <tr>
-        <th>Produit</th>
-        <th>Description</th>
-        <th>Tailles disponibles</th>
-        <th>Prix (€)</th>
-        <th>Taille</th>
-        <th>Quantité</th>
-        <th>Commander</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div id="paypal-button-container" style="margin-top: 20px; display: none;"></div>
+  <div id="alma-info" style="margin-top: 20px; display: none;">
+    <p>💡 Vous serez redirigé vers Alma pour finaliser votre paiement en plusieurs fois.</p>
+  </div>
 
-  <script>
-    let products = [];
-    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  <button id="payerBtn">Payer ma commande</button>
+</section>
 
-    async function loadProducts() {
-      try {
-        const res = await fetch('/.netlify/functions/get-products');
-        if (!res.ok) throw new Error('Erreur lors du chargement des produits');
-        products = await res.json();
-        populateTitleDropdown();
-        populateTable();
-      } catch (err) {
-        console.error(err);
-        alert('Impossible de charger le catalogue. Vérifiez la console.');
-      }
-    }
+<!-- JS -->
+<script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
+<script>
+let products = [];
+let cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
-    function populateTitleDropdown() {
-      const titleSelect = document.getElementById('titleSelect');
-      const titles = [...new Set(products.map(p => p.name))];
-      titles.forEach(title => {
-        const option = document.createElement('option');
-        option.value = title;
-        option.textContent = title;
-        titleSelect.appendChild(option);
-      });
-    }
+// Chargement des produits
+async function loadProducts() {
+  try {
+    const res = await fetch('/.netlify/functions/get-products');
+    if (!res.ok) throw new Error('Erreur lors du chargement des produits');
+    products = await res.json();
+    populateTypeDropdown();
+    populateTable();
+  } catch (err) {
+    console.error(err);
+    alert('Impossible de charger le catalogue. Vérifiez la console.');
+  }
+}
 
-    function addToCart(productId, selectedSize, quantity) {
-      const product = products.find(p => p.id === productId);
-      if (!product) return alert('Produit introuvable');
-      if (!selectedSize) return alert('Veuillez sélectionner une taille.');
-      if (!quantity || quantity < 1) return alert('Veuillez saisir une quantité valide.');
+// Dropdown type
+function populateTypeDropdown() {
+  const typeSelect = document.getElementById('typeSelect');
+  const types = [...new Set(products.map(p => p.couleur))];
+  types.forEach(type => {
+    const option = document.createElement('option');
+    option.value = type;
+    option.textContent = type;
+    typeSelect.appendChild(option);
+  });
+}
 
-      cart.push({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        size: selectedSize,
-        quantity: parseInt(quantity, 10)
-      });
+// Dropdown titre
+function populateTitleDropdown(selectedType) {
+  const titleSelect = document.getElementById('titleSelect');
+  titleSelect.innerHTML = '<option value="">--Tous les titres--</option>';
+  const filtered = selectedType ? products.filter(p => p.couleur === selectedType) : products;
+  const titles = [...new Set(filtered.map(p => p.titre))];
+  titles.forEach(title => {
+    const option = document.createElement('option');
+    option.value = title;
+    option.textContent = title;
+    titleSelect.appendChild(option);
+  });
+}
 
-      localStorage.setItem('cart', JSON.stringify(cart));
-      alert(`"${product.name}" (${selectedSize}) x${quantity} ajouté au panier !`);
-    }
+// Parse tailles
+function parseSizes(sizesField) {
+  if (!sizesField) return [];
+  try { return JSON.parse(sizesField); }
+  catch { return []; }
+}
 
-    function populateTable() {
-      const tbody = document.querySelector('#productTable tbody');
-      tbody.innerHTML = '';
+// Ajouter au panier
+function addToCart(reference, selectedSize, quantity) {
+  const product = products.find(p => p.reference === reference);
+  if (!product) return alert('Produit introuvable');
+  if (!selectedSize) return alert('Veuillez sélectionner une taille.');
+  if (!quantity || quantity < 1) return alert('Veuillez sélectionner une quantité valide.');
 
-      const selectedTitle = document.getElementById('titleSelect').value;
-      const priceSort = document.getElementById('priceSort').value;
+  cart.push({
+    reference: product.reference,
+    titre: product.titre,
+    price: product.price,
+    taille: selectedSize,
+    quantity: parseInt(quantity, 10)
+  });
+  localStorage.setItem('cart', JSON.stringify(cart));
+  alert(`Produit "${product.titre}" (${selectedSize}) x${quantity} ajouté au panier !`);
+}
 
-      let filtered = products;
-      if (selectedTitle) filtered = filtered.filter(p => p.name === selectedTitle);
+// Remplissage tableau
+function populateTable() {
+  const tbody = document.querySelector('#productTable tbody');
+  tbody.innerHTML = '';
+  const selectedType = document.getElementById('typeSelect').value;
+  const selectedTitle = document.getElementById('titleSelect').value;
+  const priceSort = document.getElementById('priceSort').value;
 
-      if (priceSort === 'asc') filtered.sort((a, b) => a.price - b.price);
-      if (priceSort === 'desc') filtered.sort((a, b) => b.price - a.price);
+  let filtered = products;
+  if (selectedType) filtered = filtered.filter(p => p.couleur === selectedType);
+  if (selectedTitle) filtered = filtered.filter(p => p.titre === selectedTitle);
+  if (priceSort === 'asc') filtered.sort((a,b) => a.price - b.price);
+  if (priceSort === 'desc') filtered.sort((a,b) => b.price - a.price);
 
-      filtered.forEach(p => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${p.name}</td>
-          <td>${p.description}</td>
-          <td>${p.sizes.join(', ')}</td>
-          <td>${p.price.toFixed(2)}</td>
-          <td>
-            <select class="sizeSelect">
-              <option value="">--Choisir--</option>
-              ${p.sizes.map(size => `<option value="${size}">${size}</option>`).join('')}
-            </select>
-          </td>
-          <td><input type="number" class="qtyInput" min="1" value="1" style="width:50px"></td>
-          <td><button class="orderBtn">Commander</button></td>
-        `;
-        tbody.appendChild(tr);
+  filtered.forEach(p => {
+    const sizesArray = parseSizes(p.sizes);
+    const sizeOptions = sizesArray.map(s => `<option value="${s.size}">${s.size} (${s.quantity})</option>`).join('');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p.titre}</td>
+      <td>${p.couleur}</td>
+      <td>${p.or || '-'}</td>
+      <td>${p.poids || '-'}</td>
+      <td>${sizesArray.map(s => `${s.size}: ${s.quantity}`).join('<br>')}</td>
+      <td>${p.price.toFixed(2)}</td>
+      <td><select class="sizeSelect"><option value="">--Choisir--</option>${sizeOptions}</select></td>
+      <td><input type="number" class="qtyInput" min="1" value="1" style="width:50px"></td>
+      <td><button class="orderBtn">Commander</button></td>
+    `;
+    tbody.appendChild(tr);
 
-        const btn = tr.querySelector('.orderBtn');
-        const select = tr.querySelector('.sizeSelect');
-        const qtyInput = tr.querySelector('.qtyInput');
-        btn.addEventListener('click', () => {
-          addToCart(p.id, select.value, qtyInput.value);
-        });
-      });
-    }
+    const btn = tr.querySelector('.orderBtn');
+    const select = tr.querySelector('.sizeSelect');
+    const qtyInput = tr.querySelector('.qtyInput');
+    btn.addEventListener('click', () => addToCart(p.reference, select.value, qtyInput.value));
+  });
+}
 
-    document.getElementById('titleSelect').addEventListener('change', populateTable);
-    document.getElementById('priceSort').addEventListener('change', populateTable);
+// Filtres
+document.getElementById('typeSelect').addEventListener('change', e => {
+  populateTitleDropdown(e.target.value);
+  populateTable();
+});
+document.getElementById('titleSelect').addEventListener('change', populateTable);
+document.getElementById('priceSort').addEventListener('change', populateTable);
 
-    loadProducts();
-  </script>
-</main>
+// Paiement
+const payerBtn = document.getElementById("payerBtn");
+const paypalContainer = document.getElementById("paypal-button-container");
+const almaInfo = document.getElementById("alma-info");
+
+document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+  radio.addEventListener("change", e => {
+    const method = e.target.value;
+    payerBtn.style.display = (method === "stripe" || method === "alma") ? "inline-block" : "none";
+    paypalContainer.style.display = method === "paypal" ? "block" : "none";
+    almaInfo.style.display = method === "alma" ? "block" : "none";
+    if (method === "paypal" && typeof paypal !== "undefined") renderPayPalButton();
+  });
+});
+
+payerBtn.addEventListener("click", async () => {
+  const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+  if (!cart || cart.length === 0) return alert("Votre panier est vide !");
+  try {
+    const response = await fetch("/.netlify/functions/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cart, shippingFee: 0, paymentMethod: method })
+    });
+    const data = await response.json();
+    if (data.url) window.location.href = data.url;
+    else alert("Erreur de session de paiement : " + data.error);
+  } catch (err) { console.error(err); alert("Erreur lors du paiement : " + err.message); }
+});
+
+// PayPal
+function renderPayPalButton() {
+  paypalContainer.innerHTML = "";
+  paypal.Buttons({
+    style: { layout: "vertical", color: "gold", shape: "pill", label: "paypal" },
+    createOrder: (data, actions) => {
+      const total = cart.reduce((sum, p) => sum + (p.price || 0) * p.quantity, 0);
+      return actions.order.create({ purchase_units:[{ amount:{ value: total.toFixed(2), currency_code:"EUR" }, description:"Commande LoveMonBijou" }]});
+    },
+    onApprove: (data, actions) => actions.order.capture().then(details => {
+      alert(`Paiement réussi ! Merci ${details.payer.name.given_name}`);
+      localStorage.removeItem("cart");
+      window.location.href = "/success.html";
+    }),
+    onError: err => { console.error("Erreur PayPal :", err); alert("Erreur lors du paiement PayPal."); }
+  }).render("#paypal-button-container");
+}
+
+loadProducts();
+</script>
+
+</body>
+</html>
