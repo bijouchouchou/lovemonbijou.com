@@ -1,5 +1,6 @@
 [build]
-  command = ""
+  # Pas de commande de build nécessaire pour ce projet statique
+  command = "echo 'skip build'"
   publish = "."
 
 [functions]
@@ -16,11 +17,14 @@
     Content-Type = "text/html; charset=UTF-8"
 
 [[redirects]]
+  # Redirection pour les fonctions Netlify
   from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
 [[redirects]]
+  # Redirection globale vers index.html, forcée pour ne pas bloquer les fonctions
   from = "/*"
   to = "/index.html"
   status = 200
+  force = true
