@@ -1,259 +1,138 @@
-<main>
-  <h1>Catalogue Interactif avec Commande</h1>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Catalogue - LoveMonBijou</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+  th { background-color: #f5f5f5; }
+  select, input[type=number], button { padding: 5px; margin: 5px 0; }
+</style>
+</head>
+<body>
 
-  <!-- Filtres et tri -->
-  <div>
-    <label for="typeSelect">Type de produit:</label>
-    <select id="typeSelect">
-        <option value="">--Tous les types--</option>
-    </select>
+<h1>Catalogue Interactif - LoveMonBijou</h1>
 
-    <label for="titleSelect">Titre du produit:</label>
-    <select id="titleSelect">
-        <option value="">--Tous les titres--</option>
-    </select>
+<div>
+  <label for="typeSelect">Type de produit:</label>
+  <select id="typeSelect">
+    <option value="">--Tous les types--</option>
+  </select>
 
-    <label for="priceSort">Trier par prix:</label>
-    <select id="priceSort">
-        <option value="">--Aucun--</option>
-        <option value="asc">Prix croissant</option>
-        <option value="desc">Prix décroissant</option>
-    </select>
-  </div>
+  <label for="titleSelect">Titre du produit:</label>
+  <select id="titleSelect">
+    <option value="">--Tous les titres--</option>
+  </select>
 
-  <!-- Tableau du catalogue -->
-  <table id="productTable">
-      <thead>
-          <tr>
-              <th>Titre</th>
-              <th>Couleur</th>
-              <th>Or</th>
-              <th>Poids</th>
-              <th>Quantités par taille</th>
-              <th>Prix (€)</th>
-              <th>Taille</th>
-              <th>Quantité</th>
-              <th>Commande</th>
-          </tr>
-      </thead>
-      <tbody></tbody>
-  </table>
+  <label for="priceSort">Trier par prix:</label>
+  <select id="priceSort">
+    <option value="">--Aucun--</option>
+    <option value="asc">Prix croissant</option>
+    <option value="desc">Prix décroissant</option>
+  </select>
+</div>
 
-  <!-- Panier -->
-  <h2>Panier</h2>
-  <table id="cartTable">
-      <thead>
-          <tr>
-              <th>Titre</th>
-              <th>Taille</th>
-              <th>Quantité</th>
-              <th>Prix unitaire (€)</th>
-              <th>Total (€)</th>
-              <th>Supprimer</th>
-          </tr>
-      </thead>
-      <tbody></tbody>
-  </table>
-  <p id="cartTotal"><strong>Total général: 0 €</strong></p>
-  <button id="checkoutBtn">Valider la commande</button>
+<table id="productTable">
+  <thead>
+    <tr>
+      <th>Titre</th>
+      <th>Couleur</th>
+      <th>Or</th>
+      <th>Poids</th>
+      <th>Quantités par taille</th>
+      <th>Prix (€)</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-  <script>
-  let products = [];
-  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+<script>
+let products = [];
 
-  async function loadProducts() {
-      try {
-          const res = await fetch('/.netlify/functions/get-products');
-          if (!res.ok) throw new Error('Erreur lors du chargement des produits');
-          products = await res.json();
-
-          populateTypeDropdown();
-          populateTable();
-          updateCart();
-      } catch (err) {
-          console.error(err);
-          alert('Impossible de charger le catalogue. Vérifiez la console.');
-      }
+async function loadProducts() {
+  try {
+    const res = await fetch('/.netlify/functions/get-products');
+    if (!res.ok) throw new Error('Erreur lors du chargement des produits');
+    products = await res.json();
+    populateTypeDropdown();
+    populateTable();
+  } catch (err) {
+    console.error(err);
+    alert('Impossible de charger le catalogue. Vérifiez la console.');
   }
+}
 
-  // Remplissage des dropdowns
-  function populateTypeDropdown() {
-      const typeSelect = document.getElementById('typeSelect');
-      const types = [...new Set(products.map(p => p.couleur))];
-      types.forEach(type => {
-          const option = document.createElement('option');
-          option.value = type;
-          option.textContent = type;
-          typeSelect.appendChild(option);
-      });
-  }
-
-  function populateTitleDropdown(selectedType) {
-      const titleSelect = document.getElementById('titleSelect');
-      titleSelect.innerHTML = '<option value="">--Tous les titres--</option>';
-      const filtered = selectedType ? products.filter(p => p.couleur === selectedType) : products;
-      const titles = [...new Set(filtered.map(p => p.titre))];
-      titles.forEach(title => {
-          const option = document.createElement('option');
-          option.value = title;
-          option.textContent = title;
-          titleSelect.appendChild(option);
-      });
-  }
-
-  // Parsing des tailles
-  function parseSizes(sizesField) {
-      if (!sizesField) return [];
-      try {
-          return JSON.parse(sizesField);
-      } catch (err) {
-          console.warn('Impossible de parser les tailles:', sizesField);
-          return [];
-      }
-  }
-
-  // Ajouter au panier
-  function addToCart(reference, selectedSize, quantity) {
-      const product = products.find(p => p.reference === reference);
-      if (!product) return alert('Produit introuvable');
-      if (!selectedSize) return alert('Veuillez sélectionner une taille.');
-      if (!quantity || quantity < 1) return alert('Veuillez sélectionner une quantité valide.');
-
-      cart.push({
-          reference: product.reference,
-          titre: product.titre,
-          prix: product.prix,
-          taille: selectedSize,
-          quantity: parseInt(quantity, 10)
-      });
-      localStorage.setItem('cart', JSON.stringify(cart));
-      alert(`Produit "${product.titre}" (${selectedSize}) x${quantity} ajouté au panier !`);
-      updateCart();
-  }
-
-  // Supprimer un produit du panier
-  function removeFromCart(index) {
-      cart.splice(index, 1);
-      localStorage.setItem('cart', JSON.stringify(cart));
-      updateCart();
-  }
-
-  // Mettre à jour le panier
-  function updateCart() {
-      const tbody = document.querySelector('#cartTable tbody');
-      tbody.innerHTML = '';
-      let totalGeneral = 0;
-
-      cart.forEach((item, index) => {
-          const totalItem = item.prix * item.quantity;
-          totalGeneral += totalItem;
-
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-              <td>${item.titre}</td>
-              <td>${item.taille}</td>
-              <td>${item.quantity}</td>
-              <td>${item.prix.toFixed(2)}</td>
-              <td>${totalItem.toFixed(2)}</td>
-              <td><button class="removeBtn">Supprimer</button></td>
-          `;
-          tbody.appendChild(tr);
-
-          tr.querySelector('.removeBtn').addEventListener('click', () => removeFromCart(index));
-      });
-
-      document.getElementById('cartTotal').innerHTML = `<strong>Total général: ${totalGeneral.toFixed(2)} €</strong>`;
-  }
-
-  // Remplir le tableau du catalogue
-  function populateTable() {
-      const tbody = document.querySelector('#productTable tbody');
-      tbody.innerHTML = '';
-
-      const selectedType = document.getElementById('typeSelect').value;
-      const selectedTitle = document.getElementById('titleSelect').value;
-      const priceSort = document.getElementById('priceSort').value;
-
-      let filtered = products;
-      if (selectedType) filtered = filtered.filter(p => p.couleur === selectedType);
-      if (selectedTitle) filtered = filtered.filter(p => p.titre === selectedTitle);
-
-      if (priceSort === 'asc') filtered.sort((a,b) => a.prix - b.prix);
-      if (priceSort === 'desc') filtered.sort((a,b) => b.prix - a.prix);
-
-      filtered.forEach(p => {
-          const sizesArray = parseSizes(p.autre_pierre);
-          const sizeOptions = sizesArray.map(s => 
-              `<option value="${s.size}">${s.size} (${s.quantity})</option>`
-          ).join('');
-
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-              <td>${p.titre}</td>
-              <td>${p.couleur}</td>
-              <td>${p.or}</td>
-              <td>${p.poids}</td>
-              <td>${sizesArray.map(s => `${s.size}: ${s.quantity}`).join('<br>')}</td>
-              <td>${p.prix.toFixed(2)}</td>
-              <td>
-                  <select class="sizeSelect">
-                      <option value="">--Choisir--</option>
-                      ${sizeOptions}
-                  </select>
-              </td>
-              <td>
-                  <input type="number" class="qtyInput" min="1" value="1" style="width:50px">
-              </td>
-              <td><button class="orderBtn">Commander</button></td>
-          `;
-          tbody.appendChild(tr);
-
-          const btn = tr.querySelector('.orderBtn');
-          const select = tr.querySelector('.sizeSelect');
-          const qtyInput = tr.querySelector('.qtyInput');
-
-          btn.addEventListener('click', () => {
-              addToCart(p.reference, select.value, qtyInput.value);
-          });
-      });
-  }
-
-  // Bouton valider la commande
-  document.getElementById('checkoutBtn').addEventListener('click', async () => {
-      if (cart.length === 0) return alert('Votre panier est vide.');
-
-      try {
-          const res = await fetch('/.netlify/functions/send-order', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ cart })
-          });
-
-          const data = await res.json();
-          if (res.ok) {
-              alert('Commande envoyée avec succès !');
-              cart = [];
-              localStorage.setItem('cart', JSON.stringify(cart));
-              updateCart();
-          } else {
-              alert('Erreur lors de l’envoi de la commande : ' + data.error);
-          }
-      } catch (err) {
-          console.error(err);
-          alert('Erreur réseau lors de l’envoi de la commande.');
-      }
+function populateTypeDropdown() {
+  const typeSelect = document.getElementById('typeSelect');
+  const types = [...new Set(products.map(p => p.couleur))];
+  types.forEach(type => {
+    const option = document.createElement('option');
+    option.value = type;
+    option.textContent = type;
+    typeSelect.appendChild(option);
   });
+}
 
-  // Listeners pour filtres
-  document.getElementById('typeSelect').addEventListener('change', e => {
-      const type = e.target.value;
-      populateTitleDropdown(type);
-      populateTable();
+function populateTitleDropdown(selectedType) {
+  const titleSelect = document.getElementById('titleSelect');
+  titleSelect.innerHTML = '<option value="">--Tous les titres--</option>';
+  const filtered = selectedType ? products.filter(p => p.couleur === selectedType) : products;
+  const titles = [...new Set(filtered.map(p => p.titre))];
+  titles.forEach(title => {
+    const option = document.createElement('option');
+    option.value = title;
+    option.textContent = title;
+    titleSelect.appendChild(option);
   });
+}
 
-  document.getElementById('titleSelect').addEventListener('change', populateTable);
-  document.getElementById('priceSort').addEventListener('change', populateTable);
+function parseSizes(sizesField) {
+  if (!sizesField) return [];
+  try { return JSON.parse(sizesField); }
+  catch { return []; }
+}
 
-  loadProducts();
-  </script>
-</main>
+function populateTable() {
+  const tbody = document.querySelector('#productTable tbody');
+  tbody.innerHTML = '';
+
+  const selectedType = document.getElementById('typeSelect').value;
+  const selectedTitle = document.getElementById('titleSelect').value;
+  const priceSort = document.getElementById('priceSort').value;
+
+  let filtered = products;
+  if (selectedType) filtered = filtered.filter(p => p.couleur === selectedType);
+  if (selectedTitle) filtered = filtered.filter(p => p.titre === selectedTitle);
+  if (priceSort === 'asc') filtered.sort((a,b) => a.price - b.price);
+  if (priceSort === 'desc') filtered.sort((a,b) => b.price - a.price);
+
+  filtered.forEach(p => {
+    const sizesArray = parseSizes(p.sizes);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p.titre}</td>
+      <td>${p.couleur}</td>
+      <td>${p.or || '-'}</td>
+      <td>${p.poids || '-'}</td>
+      <td>${sizesArray.map(s => `${s.size}: ${s.quantity}`).join('<br>')}</td>
+      <td>${p.price.toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Événements filtres
+document.getElementById('typeSelect').addEventListener('change', e => {
+  populateTitleDropdown(e.target.value);
+  populateTable();
+});
+document.getElementById('titleSelect').addEventListener('change', populateTable);
+document.getElementById('priceSort').addEventListener('change', populateTable);
+
+loadProducts();
+</script>
+
+</body>
+</html>
