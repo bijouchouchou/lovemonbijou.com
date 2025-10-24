@@ -1,11 +1,20 @@
+# -------------------------------
+# Netlify configuration pour Windows
+# -------------------------------
+
 [build]
+  # Pas de commande de build nécessaire pour ce projet statique
+  # 'publish' pointe vers le dossier contenant index.html
   command = "echo 'skip build'"
   publish = "main"
 
-
 [functions]
+  # Dossier contenant tes fonctions Netlify (*.js)
   directory = "netlify/functions"
 
+# -------------------------------
+# Headers pour le contenu HTML
+# -------------------------------
 [[headers]]
   for = "/*.html"
   [headers.values]
@@ -16,6 +25,9 @@
   [headers.values]
     Content-Type = "text/html; charset=UTF-8"
 
+# -------------------------------
+# Redirections pour les fonctions et SPA
+# -------------------------------
 [[redirects]]
   # Redirection pour les fonctions Netlify
   from = "/.netlify/functions/*"
@@ -23,7 +35,7 @@
   status = 200
 
 [[redirects]]
-  # Redirection globale vers index.html, forcée pour ne pas bloquer les fonctions
+  # Redirection globale vers index.html pour SPA
   from = "/*"
   to = "/index.html"
   status = 200
