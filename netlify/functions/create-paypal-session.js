@@ -1,65 +1,59 @@
-import Stripe from "stripe";
+import Stripe from 'stripe';
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export async function handler(event) {
   try {
-    const { cart, shippingFee, method } = JSON.parse(event.body || "{}");
+    const { cart, shippingFee, paymentMethod } = JSON.parse(event.body || '{}');
 
     if (!cart || cart.length === 0) {
-      return { statusCode: 400, body: JSON.stringify({ error: "Panier vide" }) };
+      return { statusCode: 400, body: JSON.stringify({ error: 'Panier vide' }) };
     }
 
-    // 🔹 Convertir les produits en format Stripe
-    const line_items = cart.map(i => ({
+    // Préparation des lignes pour Stripe
+    const line_items = cart.map(item => ({
       price_data: {
-        currency: "eur",
-        product_data: { name: `${i.name} (${i.size})` },
-        unit_amount: Math.round(i.price * 100),
+        currency: 'eur',
+        product_data: { name: `${item.titre} (${item.size})` },
+        unit_amount: Math.round(item.price * 100),
       },
-      quantity: i.quantity
+      quantity: item.quantity,
     }));
 
-    // 🔹 Ajouter les frais de livraison
     if (shippingFee > 0) {
       line_items.push({
         price_data: {
-          currency: "eur",
-          product_data: { name: "Frais de livraison" },
+          currency: 'eur',
+          product_data: { name: 'Frais de livraison' },
           unit_amount: Math.round(shippingFee * 100),
         },
-        quantity: 1
+        quantity: 1,
       });
     }
 
-    // 🧠 Redirection selon le mode de paiement choisi
-    if (method === "stripe") {
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        mode: "payment",
-        line_items,
-        success_url: `${process.env.URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.URL}/cancel.html`,
-        metadata: { order_data: JSON.stringify(cart) }
-      });
-      return { statusCode: 200, body: JSON.stringify({ id: session.id, url: session.url }) };
+    // Définition du mode de paiement selon choix
+    let paymentMethods = ['card']; // Stripe par défaut
+    if (paymentMethod === 'alma') {
+      paymentMethods = ['card']; // Alma utilise Stripe, mais via un plan de paiement
+    } else if (paymentMethod === 'paypal') {
+      // Pour PayPal, tu devras intégrer via un bouton PayPal JS séparé
+      paymentMethods = ['card']; // ici on laisse Stripe pour test
     }
 
-    if (method === "paypal") {
-      // Redirection simulée vers une page PayPal test
-      const paypalUrl = `${process.env.URL}/paypal-simulate.html`;
-      return { statusCode: 200, body: JSON.stringify({ url: paypalUrl }) };
-    }
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: paymentMethods,
+      mode: 'payment',
+      line_items,
+      success_url: `${process.env.URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.URL}/cancel.html`,
+      metadata: { order_data: JSON.stringify(cart) },
+    });
 
-    if (method === "alma") {
-      // Redirection simulée vers Alma (paiement 3x)
-      const almaUrl = `${process.env.URL}/alma-simulate.html`;
-      return { statusCode: 200, body: JSON.stringify({ url: almaUrl }) };
-    }
-
-    return { statusCode: 400, body: JSON.stringify({ error: "Méthode de paiement inconnue" }) };
-
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ id: session.id }),
+    };
   } catch (err) {
-    console.error("Erreur dans create-checkout-session:", err);
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 }
