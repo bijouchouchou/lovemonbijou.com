@@ -7,22 +7,23 @@ export async function handler() {
     const filePath = path.join(process.cwd(), 'data', 'products.csv');
     const csv = await fs.promises.readFile(filePath, 'utf-8');
 
-    const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
+    const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true, quoteChar: '"' });
 
-    const products = parsed.data.map((p) => ({
-      reference: p.reference || '',
-      picture: p.picture || '',
-      couleur: p.couleur || '',
-      titre: p.titre || '',
-      poids: p.poids || null,
-      or: p.or || '',
-      qualite_diamant: p.qualite_diamant || '',
-      nombre_diamant: p.nombre_diamant || '',
-      serti: p.serti || '',
-      autre_pierre: p.autre_pierre || '',
-      price: parseFloat(p.prix || 0), // clé uniforme pour le front
-      sizes: p.sizes ? p.sizes.split(';').map(s => s.trim()) : null,
-    }));
+    const products = parsed.data
+      .filter(p => p.REFERENCE && p.REFERENCE.trim() !== '') // ignore les lignes vides
+      .map(p => ({
+        reference: p.REFERENCE.trim(),
+        type: p['type de bijoux']?.trim() || '',
+        description: p.description?.trim() || '',
+        picture: p.image?.trim() || '',
+        couleur: p.couleur?.trim() || '',
+        titre: p.TITRE?.trim() || '',
+        poids: p['POIDS OR']?.replace(',', '.') || null,
+        pierres: p['type de pierres']?.split(',').map(s => s.trim()) || [],
+        sizes: p['tailles disponibles']?.split(',').map(s => s.trim()) || [],
+        quantityPerSize: p['quantité par taille']?.split(',').map(s => s.trim()) || [],
+        price: parseFloat((p.price || '').replace(/[^\d.,]/g, '').replace(',', '.')) || 0
+      }));
 
     return {
       statusCode: 200,
