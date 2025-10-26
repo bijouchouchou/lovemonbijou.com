@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout - Bijouterie</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+h1 { margin-bottom: 20px; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+button { padding: 8px 12px; cursor: pointer; }
+#paymentMethods { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<h1>Votre Panier</h1>
+
+<table id="cartTable">
+  <thead>
+    <tr>
+      <th>Produit</th>
+      <th>Taille</th>
+      <th>Quantité</th>
+      <th>Prix unitaire (€)</th>
+      <th>Total (€)</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<p><strong>Total général : €<span id="cartTotal">0.00</span></strong></p>
+
+<div id="paymentMethods">
+  <label for="paymentSelect">Choisir le mode de paiement :</label>
+  <select id="paymentSelect">
+    <option value="">--Sélectionner--</option>
+    <option value="stripe">Stripe</option>
+    <option value="alma">Alma (paiement en plusieurs fois)</option>
+    <option value="paypal">PayPal</option>
+  </select>
+</div>
+
+<button id="payBtn">Payer</button>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+
+function renderCart() {
+  const tbody = document.querySelector('#cartTable tbody');
+  tbody.innerHTML = '';
+  let total = 0;
+
+  cart.forEach((item, index) => {
+    const lineTotal = item.price * item.quantity;
+    total += lineTotal;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.titre}</td>
+      <td>${item.taille}</td>
+      <td><input type="number" min="1" value="${item.quantity}" data-index="${index}" class="qtyInput"></td>
+      <td>${item.price.toFixed(2)}</td>
+      <td>${lineTotal.toFixed(2)}</td>
+      <td><button data-index="${index}" class="removeBtn">Supprimer</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('cartTotal').textContent = total.toFixed(2);
+
+  document.querySelectorAll('.qtyInput').forEach(input => {
+    input.addEventListener('change', e => {
+      const idx = e.target.dataset.index;
+      cart[idx].quantity = parseInt(e.target.value, 10);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart();
+    });
+  });
+
+  document.querySelectorAll('.removeBtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = e.target.dataset.index;
+      cart.splice(idx, 1);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart();
+    });
+  });
+}
+
+async function payWithStripe() {
+  const res = await fetch('/.netlify/functions/create-checkout-session', {
+    method: 'POST',
+    body: JSON.stringify({ cart, shippingFee: 0 })
+  });
+  const data = await res.json();
+  if (data.error) return alert(data.error);
+  const stripe = Stripe("pk_test_PASTE_YOUR_PUBLISHABLE_KEY");
+  await stripe.redirectToCheckout({ sessionId: data.id });
+}
+
+async function payWithAlma() {
+  const res = await fetch('/.netlify/functions/create-alma-session', {
+    method: 'POST',
+    body: JSON.stringify({ cart, shippingFee: 0 })
+  });
+  const data = await res.json();
+  if (data.error) return alert(data.error);
+  alert("Redirection Alma à implémenter : " + JSON.stringify(data));
+}
+
+async function payWithPaypal() {
+  const res = await fetch('/.netlify/functions/create-paypal-order', {
+    method: 'POST',
+    body: JSON.stringify({ cart, shippingFee: 0 })
+  });
+  const data = await res.json();
+  if (data.error) return alert(data.error);
+  alert("Redirection PayPal à implémenter : " + JSON.stringify(data));
+}
+
+document.getElementById('payBtn').addEventListener('click', () => {
+  if (cart.length === 0) return alert("Le panier est vide !");
+  const method = document.getElementById('paymentSelect').value;
+  if (!method) return alert("Sélectionnez un mode de paiement !");
+  if (method === 'stripe') payWithStripe();
+  else if (method === 'alma') payWithAlma();
+  else if (method === 'paypal') payWithPaypal();
+});
+
+renderCart();
+</script>
+
+</body>
+</html>

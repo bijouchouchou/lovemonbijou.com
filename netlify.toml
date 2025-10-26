@@ -1,21 +1,117 @@
-[build]
-  command = ""
-  publish = "."
+$ netlify dev
+⬥ Injecting environment variable values for all scopes
+⬥ No app server detected. Using simple static server
+⬥ Unable to determine public folder to serve files from. Using current working directory
+⬥ Setup a netlify.toml file with a [dev] section to specify your dev server settings.
+⬥ See docs at: https://docs.netlify.com/cli/local-development/#project-detection
+⬥ Running static server from "User"
+⬥ Setting up local dev server
 
-[[headers]]
-  for = "/*.html"
-  [headers.values]
-    Content-Type = "text/html; charset=UTF-8"
+⬥ Static server listening to 3999
 
-[[headers]]
-  for = "/"
-  [headers.values]
-    Content-Type = "text/html; charset=UTF-8"
+   ╭─────────────────────── ⬥  ────────────────────────╮
+   │                                                   │
+   │   Local dev server ready: http://localhost:8888   │
+   │                                                   │
+   ╰───────────────────────────────────────────────────╯
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+ »   Error: Netlify CLI has terminated unexpectedly
+This is a problem with the Netlify CLI, not with your application.
+If you recently updated the CLI, consider reverting to an older version by running:
 
-[functions]
-  directory = "netlify/functions"
+npm install -g netlify-cli@VERSION
+
+You can use any version from https://ntl.fyi/cli-versions.
+
+Please report this problem at https://ntl.fyi/cli-error including the error details below.
+
+ »   Error: Netlify CLI has terminated unexpectedly
+This is a problem with the Netlify CLI, not with your application.
+If you recently updated the CLI, consider reverting to an older version by running:
+
+npm install -g netlify-cli@VERSION
+
+You can use any version from https://ntl.fyi/cli-versions.
+
+Please report this problem at https://ntl.fyi/cli-error including the error details below.
+
+ »   Error: Netlify CLI has terminated unexpectedly
+This is a problem with the Netlify CLI, not with your application.
+If you recently updated the CLI, consider reverting to an older version by running:
+
+npm install -g netlify-cli@VERSION
+
+You can use any version from https://ntl.fyi/cli-versions.
+
+Please report this problem at https://ntl.fyi/cli-error including the error details below.
+
+ »   Error: Netlify CLI has terminated unexpectedly
+This is a problem with the Netlify CLI, not with your application.
+If you recently updated the CLI, consider reverting to an older version by running:
+
+npm install -g netlify-cli@VERSION
+
+You can use any version from https://ntl.fyi/cli-versions.
+
+Please report this problem at https://ntl.fyi/cli-error including the error details below.
+
+ »   Error: Netlify CLI has terminated unexpectedly
+This is a problem with the Netlify CLI, not with your application.
+If you recently updated the CLI, consider reverting to an older version by running:
+
+npm install -g netlify-cli@VERSION
+
+You can use any version from https://ntl.fyi/cli-versions.
+
+Please report this problem at https://ntl.fyi/cli-error including the error details below.
+
+ »   Error: Netlify CLI has terminated unexpectedly
+This is a problem with the Netlify CLI, not with your application.
+If you recently updated the CLI, consider reverting to an older version by running:
+
+npm install -g netlify-cli@VERSION
+
+You can use any version from https://ntl.fyi/cli-versions.
+
+Please report this problem at https://ntl.fyi/cli-error including the error details below.
+
+ »   Error: Netlify CLI has terminated unexpectedly
+This is a problem with the Netlify CLI, not with your application.
+If you recently updated the CLI, consider reverting to an older version by running:
+
+npm install -g netlify-cli@VERSION
+
+You can use any version from https://ntl.fyi/cli-versions.
+
+Please report this problem at https://ntl.fyi/cli-error including the error details below.
+
+ »   Error: Netlify CLI has terminated unexpectedly
+This is a problem with the Netlify CLI, not with your application.
+If you recently updated the CLI, consider reverting to an older version by running:
+
+npm install -g netlify-cli@VERSION
+
+You can use any version from https://ntl.fyi/cli-versions.
+
+Please report this problem at https://ntl.fyi/cli-error including the error details below.
+
+ »   Error: Netlify CLI has terminated unexpectedly
+This is a problem with the Netlify CLI, not with your application.
+If you recently updated the CLI, consider reverting to an older version by running:
+
+npm install -g netlify-cli@VERSION
+
+You can use any version from https://ntl.fyi/cli-versions.
+
+Please report this problem at https://ntl.fyi/cli-error including the error details below.
+
+ »   Error: Netlify CLI has terminated unexpectedly
+This is a problem with the Netlify CLI, not with your application.
+If you recently updated the CLI, consider reverting to an older version by running:
+
+npm install -g netlify-cli@VERSION
+
+You can use any version from https://ntl.fyi/cli-versions.
+
+Please report this problem at https://ntl.fyi/cli-error including the error details below.
+
