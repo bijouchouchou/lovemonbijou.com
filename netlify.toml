@@ -1,42 +1,35 @@
-# -------------------------------
-# Netlify configuration pour Windows
-# -------------------------------
-
 [build]
-  # Pas de commande de build nécessaire pour ce projet statique
-  # 'publish' pointe vers le dossier contenant index.html
-  command = "echo 'skip build'"
-  publish = "main"
+  command = "echo 'Static site'"
+  publish = "."
 
 [functions]
-  # Dossier contenant tes fonctions Netlify (*.js)
   directory = "netlify/functions"
+  node_bundler = "esbuild"
 
-# -------------------------------
-# Headers pour le contenu HTML
-# -------------------------------
+[dev]
+  port = 8888
+  functionsPort = 9999
+  publish = "."
+  
 [[headers]]
   for = "/*.html"
   [headers.values]
     Content-Type = "text/html; charset=UTF-8"
 
 [[headers]]
-  for = "/"
+  for = "/.netlify/functions/*"
   [headers.values]
-    Content-Type = "text/html; charset=UTF-8"
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
 
-# -------------------------------
-# Redirections pour les fonctions et SPA
-# -------------------------------
 [[redirects]]
-  # Redirection pour les fonctions Netlify
-  from = "/.netlify/functions/*"
+  from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
 [[redirects]]
-  # Redirection globale vers index.html pour SPA
   from = "/*"
   to = "/index.html"
   status = 200
-  force = true
+  force = false
