@@ -4,6 +4,7 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "googleapis": "^144.0.0",
+    "papaparse": "^5.5.3",
     "stripe": "^13.3.0"
   }
 }

@@ -1,204 +1,239 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Catalogue Interactif</title>
-<style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { color: #333; }
-    select { margin: 10px 5px; padding: 5px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    th, td { border: 1px solid #333; padding: 8px; text-align: left; }
-    button { padding: 5px 10px; margin: 5px; cursor: pointer; }
-    #cart { margin-top: 20px; border: 1px solid #333; padding: 10px; }
-</style>
+  <meta charset="utf-8">
+  <title>Bijouterie Élégance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #fafafa; 
+      padding: 1.5rem; 
+      margin: 0; 
+    }
+    
+    /* Menu fixe */
+    nav { 
+      padding: 15px; 
+      background: #f8f9fa; 
+      text-align: center; 
+      border-bottom: 2px solid #e9ecef; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      right: 0; 
+      z-index: 1000; 
+    }
+    
+    nav a { 
+      margin: 0 15px; 
+      text-decoration: none; 
+      color: #495057; 
+      font-weight: bold; 
+    }
+    
+    /* Contenu */
+    .content { 
+      margin-top: 60px; 
+    }
+    
+    header { 
+      text-align: center; 
+      margin-bottom: 1rem; 
+    }
+    
+    .promo { 
+      background: #fff3ff; 
+      padding: 12px; 
+      border-radius: 8px; 
+      margin: 0 auto 1rem; 
+      max-width: 900px; 
+      text-align: center;
+    }
+    
+    .products { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 1rem; 
+      justify-content: center; 
+    }
+    
+    .product { 
+      background: white; 
+      padding: 12px; 
+      border-radius: 10px; 
+      width: 260px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
+      text-align: center; 
+    }
+    
+    .cart { 
+      margin-top: 1rem; 
+      background: white; 
+      padding: 12px; 
+      border-radius: 10px; 
+      max-width: 900px; 
+      margin-left: auto; 
+      margin-right: auto; 
+    }
+    
+    button { 
+      background: #635bff; 
+      color: white; 
+      border: none; 
+      padding: 8px 12px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+    }
+    
+    form.newsletter { 
+      display: flex; 
+      gap: 8px; 
+      justify-content: center; 
+      margin-top: 12px; 
+    }
+    
+    input[type="email"] { 
+      padding: 8px; 
+      border-radius: 6px; 
+      border: 1px solid #ddd; 
+    }
+  </style>
 </head>
 <body>
+  <!-- Menu de navigation -->
+  <nav>
+    <a href="index.html">Accueil</a>
+    <a href="fabrication.html">Fabrication</a>
+    <a href="catalogue.html">Catalogue</a>
+    <a href="success.html">Confirmation</a>
+    <a href="cancel.html">Annulation</a>
+  </nav>
 
-<h1>Catalogue Interactif</h1>
+  <div class="content">
+    <header>
+      <h1>Bijouterie Élégance 💎</h1>
+    </header>
 
-<label for="typeSelect">Type de produit:</label>
-<select id="typeSelect">
-    <option value="">--Tous les types--</option>
-</select>
+    <div id="promo" class="promo" style="display:none"></div>
 
-<label for="titleSelect">Titre du produit:</label>
-<select id="titleSelect">
-    <option value="">--Tous les titres--</option>
-</select>
+    <section>
+      <h2 style="text-align:center;">Nos bijoux</h2>
+      <div id="products" class="products"></div>
+    </section>
 
-<label for="priceSort">Trier par prix:</label>
-<select id="priceSort">
-    <option value="">--Aucun--</option>
-    <option value="asc">Prix croissant</option>
-    <option value="desc">Prix décroissant</option>
-</select>
+    <section class="cart">
+      <h2>Mon panier</h2>
+      <div id="cartItems">Votre panier est vide.</div>
+      <p>Sous-total : <span id="subtotal">0.00</span> €</p>
+      <p>Frais de livraison : <span id="shipping">5.00</span> €</p>
+      <h3>Total : <span id="total">0.00</span> €</h3>
+      <button id="checkout" disabled>Payer</button>
 
-<table id="productTable">
-    <thead>
-        <tr>
-            <th>Titre</th>
-            <th>Couleur</th>
-            <th>Or</th>
-            <th>Poids</th>
-            <th>Quantités par taille</th>
-            <th>Prix (€)</th>
-            <th>Ajouter au panier</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+      <div style="margin-top:18px;text-align:center">
+        <h3>Inscrivez-vous à la newsletter</h3>
+        <form name="newsletter" method="POST" data-netlify="true" class="newsletter">
+          <input type="hidden" name="form-name" value="newsletter" />
+          <input type="email" name="email" placeholder="votre@email" required />
+          <button type="submit">S'inscrire</button>
+        </form>
+      </div>
+    </section>
+  </div>
 
-<div id="cart">
-    <h2>Panier</h2>
-    <ul id="cartList"></ul>
-    <p>Total: €<span id="cartTotal">0.00</span></p>
-    <button id="checkoutBtn">Valider la commande</button>
-</div>
+  <script>
+    const stripe = Stripe("pk_test_PASTE_YOUR_PUBLISHABLE_KEY");
+    const shippingFee = 5.0;
+    let products = [];
+    const cart = [];
 
-<script>
-let products = [];
-let cart = [];
-
-// Charger les produits depuis Netlify Function
-async function loadProducts() {
-    try {
-        const res = await fetch('/.netlify/functions/get-products');
-        if (!res.ok) throw new Error('Erreur lors du chargement des produits');
-        products = await res.json();
-        populateTypeDropdown();
-        populateTable();
-    } catch (err) {
-        console.error(err);
-        alert('Impossible de charger le catalogue. Vérifiez la console.');
+    async function fetchProducts(){
+      const r = await fetch('/data/products.json');
+      products = await r.json();
+      renderProducts();
+      loadPromo();
     }
-}
 
-function populateTypeDropdown() {
-    const typeSelect = document.getElementById('typeSelect');
-    const types = [...new Set(products.map(p => p.couleur))];
-    types.forEach(type => {
-        const option = document.createElement('option');
-        option.value = type;
-        option.textContent = type;
-        typeSelect.appendChild(option);
-    });
-}
-
-function populateTitleDropdown(selectedType) {
-    const titleSelect = document.getElementById('titleSelect');
-    titleSelect.innerHTML = '<option value="">--Tous les titres--</option>';
-    const filtered = selectedType ? products.filter(p => p.couleur === selectedType) : products;
-    const titles = [...new Set(filtered.map(p => p.titre))];
-    titles.forEach(title => {
-        const option = document.createElement('option');
-        option.value = title;
-        option.textContent = title;
-        titleSelect.appendChild(option);
-    });
-}
-
-function parseSizes(sizesField) {
-    if (!sizesField) return '';
-    try {
-        const sizesArray = JSON.parse(sizesField);
-        return sizesArray.map(s => `${s.size}: ${s.quantity}`).join('<br>');
-    } catch (err) {
-        console.warn('Impossible de parser les tailles:', sizesField);
-        return sizesField;
-    }
-}
-
-function populateTable() {
-    const tbody = document.querySelector('#productTable tbody');
-    tbody.innerHTML = '';
-
-    const selectedType = document.getElementById('typeSelect').value;
-    const selectedTitle = document.getElementById('titleSelect').value;
-    const priceSort = document.getElementById('priceSort').value;
-
-    let filtered = products;
-    if (selectedType) filtered = filtered.filter(p => p.couleur === selectedType);
-    if (selectedTitle) filtered = filtered.filter(p => p.titre === selectedTitle);
-
-    if (priceSort === 'asc') filtered.sort((a, b) => a.prix - b.prix);
-    if (priceSort === 'desc') filtered.sort((a, b) => b.prix - a.prix);
-
-    filtered.forEach((p, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${p.titre}</td>
-            <td>${p.couleur}</td>
-            <td>${p.or}</td>
-            <td>${p.poids}</td>
-            <td>${parseSizes(p.autre_pierre)}</td>
-            <td>${p.prix.toFixed(2)}</td>
-            <td><button data-index="${index}">Ajouter</button></td>
+    function renderProducts(){
+      const container = document.getElementById('products');
+      container.innerHTML = '';
+      products.forEach(p=>{
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.innerHTML = `
+          <h3>${p.name}</h3>
+          <img src="${p.images[0]}" alt="${p.name}" style="max-width:100%;height:150px;object-fit:cover;border-radius:6px"/>
+          <p>${p.description}</p>
+          <p><strong>${p.price.toFixed(2)} €</strong></p>
+          <label>Taille:
+            <select>${p.sizes.map(s=>`<option value="${s}">${s}</option>`).join('')}</select>
+          </label><br/>
+          <label>Réf: <input type="text" placeholder="ex: REF-${p.id.toUpperCase()}" /></label><br/>
+          <button data-id="${p.id}">Ajouter</button>
         `;
-        tbody.appendChild(tr);
-    });
+        container.appendChild(div);
+      });
 
-    document.querySelectorAll('#productTable button').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const idx = e.target.getAttribute('data-index');
-            addToCart(products[idx]);
+      document.querySelectorAll('.product button').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          const el = e.target.closest('.product');
+          const id = btn.dataset.id;
+          const prod = products.find(x=>x.id===id);
+          const size = el.querySelector('select').value;
+          const ref = el.querySelector('input').value;
+          const existing = cart.find(i=>i.id===id && i.size===size && i.ref===ref);
+          if(existing) existing.quantity++;
+          else cart.push({ id, name: prod.name, price: prod.price, size, ref, quantity:1 });
+          updateCartUI();
         });
-    });
-}
-
-function addToCart(product) {
-    cart.push(product);
-    updateCart();
-}
-
-function updateCart() {
-    const cartList = document.getElementById('cartList');
-    cartList.innerHTML = '';
-    let total = 0;
-    cart.forEach((p) => {
-        const li = document.createElement('li');
-        li.textContent = `${p.titre} - €${p.prix.toFixed(2)}`;
-        cartList.appendChild(li);
-        total += p.prix;
-    });
-    document.getElementById('cartTotal').textContent = total.toFixed(2);
-}
-
-// Envoyer la commande via Netlify Function + Infomaniak SMTP
-document.getElementById('checkoutBtn').addEventListener('click', async () => {
-    if (cart.length === 0) {
-        alert('Votre panier est vide.');
-        return;
+      });
     }
 
-    try {
-        const res = await fetch('/.netlify/functions/send-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cart })
+    function updateCartUI(){
+      const el = document.getElementById('cartItems');
+      if(!cart.length){
+        el.innerHTML='Votre panier est vide.';
+        document.getElementById('checkout').disabled=true;
+      } else {
+        el.innerHTML = cart.map((i, idx)=>
+          `<div><strong>${i.name}</strong> (${i.size}) Réf:${i.ref||'–'} ×${i.quantity}
+          <button data-idx="${idx}">Retirer</button></div>`
+        ).join('');
+        document.querySelectorAll('#cartItems button').forEach(b=>{
+          b.addEventListener('click', e=>{
+            cart.splice(e.target.dataset.idx,1);
+            updateCartUI();
+          });
         });
-
-        const result = await res.json();
-        alert(result.message || 'Commande envoyée !');
-        cart = [];
-        updateCart();
-    } catch (err) {
-        console.error(err);
-        alert('Erreur lors de l’envoi de la commande.');
+      }
+      const subtotal = cart.reduce((s,i)=>s+i.price*i.quantity,0);
+      document.getElementById('subtotal').textContent=subtotal.toFixed(2);
+      document.getElementById('total').textContent=(subtotal+(cart.length?shippingFee:0)).toFixed(2);
+      document.getElementById('checkout').disabled=!cart.length;
     }
-});
 
-document.getElementById('typeSelect').addEventListener('change', e => {
-    const type = e.target.value;
-    populateTitleDropdown(type);
-    populateTable();
-});
-document.getElementById('titleSelect').addEventListener('change', populateTable);
-document.getElementById('priceSort').addEventListener('change', populateTable);
+    document.getElementById('checkout').addEventListener('click', async ()=>{
+      const res = await fetch('/.netlify/functions/create-checkout-session',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({cart, shippingFee})
+      });
+      const body = await res.json();
+      stripe.redirectToCheckout({ sessionId: body.id });
+    });
 
-loadProducts();
-</script>
+    async function loadPromo(){
+      const r = await fetch('/data/promo.json');
+      const promo = await r.json();
+      if(promo.enabled){
+        const el=document.getElementById('promo');
+        el.style.display='block';
+        el.innerHTML=`<strong>${promo.message}</strong>`;
+      }
+    }
 
+    fetchProducts();
+  </script>
 </body>
 </html>

@@ -9,3 +9,4 @@ INDEX181025/
 
 # Local Netlify folder
 .netlify
+.env
