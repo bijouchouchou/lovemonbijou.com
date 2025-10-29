@@ -10,15 +10,25 @@ netlify/functions/node_modules/
 package-lock.json
 netlify/functions/package-lock.json
 
+# Netlify
+.netlify/
+netlify/functions/.netlify/
+
 # IDE et workspace
 .vscode/
 *.code-workspace
 .gitimore.txt
 
+# Documents Word
+*.docx
+*.doc
+
 # Fichiers de backup
 *_old.html
 *_backup*.html
 *.zip
+INDEX*/
+authentification*/
 
 # Scripts locaux
 start-netlify.sh
