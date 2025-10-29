@@ -1,12 +1,29 @@
-*.docx
-~
-index_backup*.html
-index_clean.html
-final_index.html
-clean_index.html
-indexesssai.html
-INDEX181025/
-
-# Local Netlify folder
-.netlify
+﻿# Environnement
 .env
+.env.local
+*.env
+google lien.env
+
+# Node modules
+node_modules/
+netlify/functions/node_modules/
+package-lock.json
+netlify/functions/package-lock.json
+
+# IDE et workspace
+.vscode/
+*.code-workspace
+.gitimore.txt
+
+# Fichiers de backup
+*_old.html
+*_backup*.html
+*.zip
+
+# Scripts locaux
+start-netlify.sh
+
+# Système
+.DS_Store
+*.log
+Thumbs.db
