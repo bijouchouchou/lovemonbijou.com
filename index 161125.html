@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Mon Bijou – Boutique</title>
+
+    <link rel="stylesheet" href="assets/style.css">
+
+    <!-- Icône -->
+    <link rel="icon" href="assets/ico.png">
+</head>
+
+<body>
+
+<header class="header">
+    <div class="header-container">
+        <h1 class="logo">💎 Love Mon Bijou</h1>
+
+        <div class="filters">
+            <input type="text" id="searchInput" placeholder="Rechercher…">
+
+            <select id="filterType">
+                <option value="">Type de bijou</option>
+            </select>
+
+            <select id="filterEvenement">
+                <option value="">Événement</option>
+            </select>
+        </div>
+
+        <div class="cart-icon" id="cartIcon">
+            🛒 <span class="cart-count" id="cartCount">0</span>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section id="product-list" class="products-grid"></section>
+</main>
+
+
+<!-- 🛒 CART PANEL -->
+<aside id="cart-panel" class="cart-panel">
+    <div class="cart-header">
+        <h2>Mon Panier</h2>
+        <button class="close-cart">×</button>
+    </div>
+
+    <div class="cart-items"></div>
+
+    <div class="cart-totals">
+        <p class="cart-subtotal">Sous-total : <span class="value">0 €</span></p>
+        <p class="cart-shipping">Frais de port : <span class="value">0 €</span></p>
+        <p class="cart-total"><strong>0 €</strong></p>
+    </div>
+
+    <button id="checkoutButton" class="checkout-btn">Procéder au paiement</button>
+</aside>
+
+
+<script src="assets/script.js"></script>
+
+</body>
+</html>

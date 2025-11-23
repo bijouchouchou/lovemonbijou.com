@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Mon Bijou - Bijoux Personnalisés</title>
+    <link rel="stylesheet" href="assets/style.css">
+    
+    <!-- EmailJS -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+    <!-- En-tête du site -->
+    <header class="site-header">
+        <h1>Love Mon Bijou</h1>
+        <nav>
+            <a href="index.html">Accueil</a>
+            <a href="catalogue.html">Catalogue</a>
+            <a href="panier.html">Panier</a>
+        </nav>
+    </header>
+
+    <!-- Barre de recherche et filtres -->
+    <section class="filters">
+        <input type="text" id="searchInput" placeholder="🔍 Rechercher un bijou...">
+        <div class="filter-row">
+            <select id="typeFilter">
+                <option value="">— Type —</option>
+            </select>
+            <select id="titleFilter">
+                <option value="">— Titre —</option>
+            </select>
+            <select id="colorFilter">
+                <option value="">— Couleur —</option>
+            </select>
+            <select id="stockFilter">
+                <option value="">— Stock —</option>
+            </select>
+            <select id="fabFilter">
+                <option value="">— Fabrication —</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- Liste des produits -->
+    <main id="product-list" class="grid">
+        <!-- Les produits seront chargés ici par JavaScript -->
+    </main>
+
+    <!-- Panier flottant -->
+    <div id="cartIcon" class="cart-icon">
+        🛒<div id="cartCount" class="cart-count">0</div>
+    </div>
+
+    <!-- Panneau panier -->
+    <div id="cart-panel" class="cart-panel">
+        <div class="cart-header">
+            <h3>Votre Panier</h3>
+            <button class="close-cart">×</button>
+        </div>
+        <div class="cart-items">
+            <!-- Articles du panier -->
+        </div>
+        <div class="cart-total">
+            Total: 0€
+        </div>
+        <button class="checkout-btn">Commander avec Stripe</button>
+    </div>
+
+    <script src="assets/script.js"></script>
+</body>
+</html>

@@ -1,359 +1,95 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Catalogue - Love Mon Bijou</title>
-<style>
-    body { 
-        font-family: Arial, sans-serif; 
-        margin: 20px;
-        background-color: #f9f9f9;
-    }
-    h1 { 
-        color: #333;
-        text-align: center;
-    }
-    .filters {
-        background: white;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    select { 
-        margin: 10px 5px; 
-        padding: 8px;
-        border-radius: 4px;
-        border: 1px solid #ddd;
-    }
-    table { 
-        border-collapse: collapse; 
-        width: 100%; 
-        margin-top: 15px;
-        background: white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    th, td { 
-        border: 1px solid #ddd; 
-        padding: 12px; 
-        text-align: left; 
-    }
-    th {
-        background-color: #4CAF50;
-        color: white;
-    }
-    tr:hover {
-        background-color: #f5f5f5;
-    }
-    button { 
-        padding: 8px 15px; 
-        margin: 5px; 
-        cursor: pointer;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 4px;
-    }
-    button:hover {
-        background-color: #45a049;
-    }
-    #cart { 
-        margin-top: 20px; 
-        border: 1px solid #ddd; 
-        padding: 20px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    #cartList {
-        list-style: none;
-        padding: 0;
-    }
-    #cartList li {
-        padding: 8px;
-        border-bottom: 1px solid #eee;
-    }
-    #checkoutBtn {
-        background-color: #ff9800;
-        font-size: 16px;
-        padding: 12px 24px;
-    }
-    #checkoutBtn:hover {
-        background-color: #e68900;
-    }
-    .loading {
-        text-align: center;
-        padding: 40px;
-        font-size: 18px;
-        color: #666;
-    }
-</style>
+  <meta charset="UTF-8">
+  <title>Love Mon Bijou</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="assets/style.css">
+
+  <!-- JS -->
+  <script defer src="assets/script.js"></script>
 </head>
+
 <body>
 
-<h1>💎 Catalogue Love Mon Bijou</h1>
+  <!-- ==========================
+        PROMOTION
+  =========================== -->
+  <div class="promo-slider">
+    <span id="promoMessage" class="promo-message">Chargement...</span>
+  </div>
 
-<div class="filters">
-    <label for="typeSelect">Type de bijou:</label>
-    <select id="typeSelect">
-        <option value="">-- Tous les types --</option>
+  <!-- ==========================
+        HEADER
+  =========================== -->
+  <header class="header">
+    <div class="logo">LOVE MON BIJOU</div>
+
+    <div class="cart-icon" id="openCartBtn">
+      🛒 <span id="cartCount" class="cart-count">0</span>
+    </div>
+  </header>
+
+  <!-- ==========================
+        FILTRE ÉVÉNEMENT
+  =========================== -->
+  <div class="filter-bar">
+    <label for="eventFilter" class="filter-label">Événement :</label>
+    <select id="eventFilter">
+      <option value="">Tous les événements</option>
     </select>
+  </div>
 
-    <label for="titleSelect">Titre:</label>
-    <select id="titleSelect">
-        <option value="">-- Tous les titres --</option>
-    </select>
+  <!-- ==========================
+        GRILLE PRODUITS
+  =========================== -->
+  <main class="page-container">
+    <div id="product-list" class="products-grid"></div>
+  </main>
 
-    <label for="priceSort">Trier par prix:</label>
-    <select id="priceSort">
-        <option value="">-- Aucun tri --</option>
-        <option value="asc">Prix croissant</option>
-        <option value="desc">Prix décroissant</option>
-    </select>
-</div>
+  <!-- ==========================
+        PANIER
+  =========================== -->
+  <aside id="cart-panel" class="cart-panel">
+    <button id="closeCartBtn" class="close-cart">×</button>
 
-<div id="loading" class="loading">Chargement du catalogue...</div>
+    <h2>Votre panier</h2>
 
-<table id="productTable" style="display:none;">
-    <thead>
-        <tr>
-            <th>Type</th>
-            <th>Titre</th>
-            <th>Couleur</th>
-            <th>Poids Or</th>
-            <th>Pierres</th>
-            <th>Tailles</th>
-            <th>Prix (€)</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+    <div class="cart-items">
+      <!-- Les articles du panier seront ajoutés ici dynamiquement -->
+      <div class="cart-item" style="display: none;">
+        <!-- Template pour les articles du panier -->
+      </div>
+    </div>
 
-<div id="cart">
-    <h2>🛒 Panier</h2>
-    <ul id="cartList"></ul>
-    <p><strong>Total: €<span id="cartTotal">0.00</span></strong></p>
-    <button id="checkoutBtn">Valider la commande</button>
-</div>
+    <div class="cart-summary">
+      <div class="cart-subtotal">Sous-total : <span class="value">0 €</span></div>
+      <div class="cart-shipping">Frais de port : <span class="value">0 €</span></div>
+      <div class="cart-total">Total : <strong class="value">0 €</strong></div>
+    </div>
 
-<script>
-let products = [];
-let cart = [];
+    <div class="checkout-buttons">
+      <button id="btn-checkout-stripe" class="checkout-btn stripe">Payer par Carte</button>
+      <button id="btn-checkout-paypal" class="checkout-btn paypal">PayPal</button>
+      <button id="btn-checkout-alma" class="checkout-btn alma">3x – Alma</button>
+    </div>
+  </aside>
 
-// Charger les produits depuis Netlify Function
-async function loadProducts() {
-    try {
-        console.log('🔄 Chargement des produits...');
-        const res = await fetch('/.netlify/functions/get-products');
-        
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        
-        const data = await res.json();
-        console.log('✅ Données reçues:', data);
-        
-        if (data.success && data.products) {
-            products = data.products;
-        } else {
-            products = data; // Si format simple
-        }
-        
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('productTable').style.display = 'table';
-        
-        populateTypeDropdown();
-        populateTable();
-        
-    } catch (err) {
-        console.error('❌ Erreur:', err);
-        document.getElementById('loading').innerHTML = `
-            <div style="color: red;">
-                <h3>Erreur de chargement</h3>
-                <p>${err.message}</p>
-                <button onclick="location.reload()">Réessayer</button>
-            </div>
-        `;
-    }
-}
-
-function populateTypeDropdown() {
-    const typeSelect = document.getElementById('typeSelect');
-    const types = [...new Set(products.map(p => p.type).filter(Boolean))];
-    
-    types.forEach(type => {
-        const option = document.createElement('option');
-        option.value = type;
-        option.textContent = type;
-        typeSelect.appendChild(option);
-    });
-}
-
-function populateTitleDropdown(selectedType) {
-    const titleSelect = document.getElementById('titleSelect');
-    titleSelect.innerHTML = '<option value="">-- Tous les titres --</option>';
-    
-    const filtered = selectedType 
-        ? products.filter(p => p.type === selectedType) 
-        : products;
-    
-    const titles = [...new Set(filtered.map(p => p.titre).filter(Boolean))];
-    
-    titles.forEach(title => {
-        const option = document.createElement('option');
-        option.value = title;
-        option.textContent = title;
-        titleSelect.appendChild(option);
-    });
-}
-
-function formatSizes(product) {
-    if (!product.sizes || product.sizes.length === 0) {
-        return '-';
-    }
-    
-    if (product.quantityPerSize && product.quantityPerSize.length > 0) {
-        return product.sizes.map((size, i) => 
-            `${size}: ${product.quantityPerSize[i] || '?'}`
-        ).join('<br>');
-    }
-    
-    return product.sizes.join(', ');
-}
-
-function formatPierres(pierres) {
-    if (!pierres || pierres.length === 0) return '-';
-    return Array.isArray(pierres) ? pierres.join(', ') : pierres;
-}
-
-function populateTable() {
-    const tbody = document.querySelector('#productTable tbody');
-    tbody.innerHTML = '';
-
-    const selectedType = document.getElementById('typeSelect').value;
-    const selectedTitle = document.getElementById('titleSelect').value;
-    const priceSort = document.getElementById('priceSort').value;
-
-    let filtered = products;
-    
-    if (selectedType) {
-        filtered = filtered.filter(p => p.type === selectedType);
-    }
-    
-    if (selectedTitle) {
-        filtered = filtered.filter(p => p.titre === selectedTitle);
-    }
-
-    // ✅ CORRIGÉ : tri sur p.price
-    if (priceSort === 'asc') {
-        filtered.sort((a, b) => a.price - b.price);
-    }
-    if (priceSort === 'desc') {
-        filtered.sort((a, b) => b.price - a.price);
-    }
-
-    filtered.forEach((p, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${p.type || '-'}</td>
-            <td><strong>${p.titre || 'Sans titre'}</strong></td>
-            <td>${p.couleur || '-'}</td>
-            <td>${p.poids || '-'}</td>
-            <td>${formatPierres(p.pierres)}</td>
-            <td>${formatSizes(p)}</td>
-            <td><strong>${p.price ? p.price.toFixed(2) : '0.00'}</strong></td>
-            <td><button data-index="${index}">Ajouter au panier</button></td>
-        `;
-        tbody.appendChild(tr);
-    });
-
-    // Ajouter les événements sur les boutons
-    document.querySelectorAll('#productTable button').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const idx = e.target.getAttribute('data-index');
-            addToCart(filtered[idx]);
-        });
-    });
-}
-
-function addToCart(product) {
-    cart.push(product);
-    updateCart();
-    alert(`✅ "${product.titre}" ajouté au panier !`);
-}
-
-function updateCart() {
-    const cartList = document.getElementById('cartList');
-    cartList.innerHTML = '';
-    let total = 0;
-    
-    cart.forEach((p, index) => {
-        const li = document.createElement('li');
-        // ✅ CORRIGÉ : p.price au lieu de p.priceSort
-        li.innerHTML = `
-            ${p.titre} - €${p.price.toFixed(2)}
-            <button onclick="removeFromCart(${index})" style="background:red;padding:3px 8px;font-size:12px;">✕</button>
-        `;
-        cartList.appendChild(li);
-        total += p.price;
-    });
-    
-    document.getElementById('cartTotal').textContent = total.toFixed(2);
-}
-
-function removeFromCart(index) {
-    cart.splice(index, 1);
-    updateCart();
-}
-
-// Envoyer la commande
-document.getElementById('checkoutBtn').addEventListener('click', async () => {
-    if (cart.length === 0) {
-        alert('⚠️ Votre panier est vide.');
-        return;
-    }
-
-    if (!confirm(`Confirmer la commande de ${cart.length} article(s) ?`)) {
-        return;
-    }
-
-    try {
-        const res = await fetch('/.netlify/functions/send-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cart })
-        });
-
-        const result = await res.json();
-        
-        if (result.success) {
-            alert('✅ ' + (result.message || 'Commande envoyée avec succès !'));
-            cart = [];
-            updateCart();
-        } else {
-            alert('❌ ' + (result.error || 'Erreur lors de l\'envoi'));
-        }
-        
-    } catch (err) {
-        console.error(err);
-        alert('❌ Erreur lors de l\'envoi de la commande.');
-    }
-});
-
-// Événements des filtres
-document.getElementById('typeSelect').addEventListener('change', e => {
-    populateTitleDropdown(e.target.value);
-    populateTable();
-});
-
-document.getElementById('titleSelect').addEventListener('change', populateTable);
-document.getElementById('priceSort').addEventListener('change', populateTable);
-
-// Charger au démarrage
-loadProducts();
-</script>
+  <!-- ==========================
+        FOOTER
+  =========================== -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="contact.html">Contact</a>
+      <a href="guide-tailles.html">Guide des tailles</a>
+      <a href="ethique.html">Nos engagements</a>
+      <a href="cgv.html">CGV</a>
+      <a href="mentions-legales.html">Mentions légales</a>
+    </div>
+    <p>© 2025 Love Mon Bijou — Tous droits réservés</p>
+  </footer>
 
 </body>
 </html>

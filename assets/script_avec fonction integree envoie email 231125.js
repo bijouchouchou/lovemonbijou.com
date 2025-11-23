@@ -1,0 +1,555 @@
+/* ============================================================
+   STYLES PRINCIPAUX - BIJOUTERIE ÉLÉGANCE
+   Version corrigée et complète
+============================================================ */
+
+/* -------------------------------------------------------
+   VARIABLES ET RÉINITIALISATION
+------------------------------------------------------- */
+:root {
+  --gold-light: #c8a97e;
+  --gold-medium: #b18a60;
+  --gold-dark: #a6784c;
+  --brown-light: #5a4634;
+  --brown-dark: #3d2b1f;
+  --cream-light: #fffdf7;
+  --cream-medium: #fff7e8;
+  --cream-dark: #ffefd8;
+  --border-color: #eadfca;
+  --shadow-light: rgba(0,0,0,0.08);
+  --shadow-medium: rgba(0,0,0,0.15);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* -------------------------------------------------------
+   GÉNÉRAL
+------------------------------------------------------- */
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--cream-light);
+  color: var(--brown-dark);
+  line-height: 1.6;
+}
+
+/* -------------------------------------------------------
+   HEADER ET NAVIGATION
+------------------------------------------------------- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  background: linear-gradient(to right, var(--cream-light), var(--cream-medium));
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--brown-dark);
+}
+
+/* -------------------------------------------------------
+   ICONE PANIER
+------------------------------------------------------- */
+.cart-icon {
+  position: relative;
+  font-size: 1.4rem;
+  cursor: pointer;
+  user-select: none;
+  padding: 8px;
+}
+
+.cart-count {
+  position: absolute;
+  top: -4px;
+  right: -10px;
+  background: var(--gold-light);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 2px 6px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.cart-animate {
+  animation: cartBounce 0.35s ease-out;
+}
+
+@keyframes cartBounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+/* -------------------------------------------------------
+   FILTRE ÉVÉNEMENTS
+------------------------------------------------------- */
+.filter-bar {
+  display: flex;
+  justify-content: center;
+  margin: 20px auto;
+  max-width: 1200px;
+  padding: 0 20px;
+}
+
+#eventFilter {
+  appearance: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 12px 45px 12px 16px;
+  border-radius: 12px;
+  border: 2px solid var(--gold-light);
+  background: linear-gradient(to bottom right, var(--cream-light), var(--cream-medium));
+  color: var(--brown-light);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  box-shadow: 0 2px 6px var(--shadow-light);
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='%235a4634' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: calc(100% - 15px) center;
+  background-size: 14px;
+}
+
+#eventFilter:hover {
+  border-color: var(--gold-medium);
+  background: linear-gradient(to bottom right, var(--cream-dark), #ffe9c2);
+  box-shadow: 0 3px 8px var(--shadow-medium);
+}
+
+#eventFilter:focus {
+  outline: none;
+  border-color: var(--gold-dark);
+  box-shadow: 0 0 0 3px rgba(198, 152, 91, 0.4);
+}
+
+.filter-label {
+  margin-right: 10px;
+  font-weight: 600;
+  color: var(--brown-light);
+}
+
+/* -------------------------------------------------------
+   PROMOTION SLIDER
+------------------------------------------------------- */
+.promo-slider {
+  background: linear-gradient(to right, #fff7e0, #ffe9c2);
+  text-align: center;
+  padding: 10px 0;
+  border-bottom: 2px solid var(--gold-medium);
+  animation: fadeIn 0.6s ease-out;
+}
+
+#promoMessage {
+  display: inline-block;
+  font-weight: 600;
+  color: var(--brown-light);
+  animation: fadeSlide 0.8s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* -------------------------------------------------------
+   GRILLE DE PRODUITS
+------------------------------------------------------- */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 18px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.product-card {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 8px var(--shadow-light);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--border-color);
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow-medium);
+}
+
+/* -------------------------------------------------------
+   PANIER LATÉRAL
+------------------------------------------------------- */
+.cart-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 340px;
+  max-width: 90%;
+  height: 100vh;
+  background: white;
+  box-shadow: -4px 0 16px rgba(0,0,0,0.15);
+  transform: translateX(100%);
+  transition: transform 0.35s ease;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  padding-top: 10px;
+}
+
+.cart-panel.open {
+  transform: translateX(0);
+}
+
+.close-cart {
+  align-self: flex-end;
+  margin: 5px 15px;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: var(--brown-light);
+  padding: 5px;
+}
+
+.cart-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 20px;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* -------------------------------------------------------
+   RÉSUMÉ PANIER
+------------------------------------------------------- */
+.cart-summary {
+  padding: 10px 20px 15px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.9rem;
+  background: var(--cream-light);
+}
+
+.cart-summary .value {
+  float: right;
+  font-weight: 600;
+}
+
+.cart-subtotal,
+.cart-shipping,
+.cart-total {
+  margin: 4px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cart-total {
+  border-top: 1px solid var(--border-color);
+  padding-top: 8px;
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+.cart-total strong {
+  font-size: 1rem;
+  color: var(--brown-dark);
+}
+
+/* -------------------------------------------------------
+   BOUTONS DE PAIEMENT
+------------------------------------------------------- */
+.checkout-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 20px 20px;
+  background: white;
+}
+
+.checkout-btn {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  text-decoration: none;
+  color: white;
+}
+
+.checkout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px var(--shadow-medium);
+}
+
+.checkout-btn.stripe {
+  background: #222;
+}
+
+.checkout-btn.paypal {
+  background: #ffc439;
+  color: #1c1c1c;
+}
+
+.checkout-btn.alma {
+  background: #6c4aff;
+}
+
+/* -------------------------------------------------------
+   MODALE ERREURS CSV
+------------------------------------------------------- */
+#csvErrorModal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  font-family: inherit;
+}
+
+.csv-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+}
+
+.csv-modal-box {
+  position: relative;
+  background: var(--cream-light);
+  padding: 16px;
+  max-width: 380px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 14px;
+  border: 2px solid var(--gold-medium);
+  box-shadow: 0 4px 22px rgba(0,0,0,0.18);
+}
+
+.csv-modal-box h2 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brown-light);
+}
+
+#csvErrorList {
+  padding-left: 18px;
+  margin-bottom: 18px;
+  font-size: 14px;
+}
+
+#csvErrorList li {
+  margin-bottom: 6px;
+  color: #d63384;
+}
+
+#csvCloseBtn {
+  width: 100%;
+  padding: 10px;
+  background: var(--gold-light);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#csvCloseBtn:hover {
+  background: var(--gold-medium);
+}
+
+/* -------------------------------------------------------
+   CLASSES PANIER PAGES
+------------------------------------------------------- */
+.cart-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.cart-container {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px var(--shadow-light);
+}
+
+.total-box {
+  background: var(--cream-light);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-top: 20px;
+}
+
+.pay-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.pay {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.cart-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* -------------------------------------------------------
+   FOOTER
+------------------------------------------------------- */
+.footer {
+  margin-top: 40px;
+  padding: 30px 20px;
+  text-align: center;
+  color: #7d6a58;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--cream-medium);
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.footer-links a {
+  text-decoration: none;
+  color: var(--brown-light);
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+  color: var(--gold-dark);
+}
+
+/* -------------------------------------------------------
+   RESPONSIVE DESIGN
+------------------------------------------------------- */
+@media (max-width: 768px) {
+  .header {
+    padding: 12px 15px;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .cart-panel {
+    width: 100%;
+  }
+
+  #eventFilter {
+    width: 90%;
+    font-size: 1.2rem;
+    padding: 14px 50px 14px 18px;
+  }
+
+  .checkout-buttons {
+    padding: 10px 15px 15px;
+  }
+
+  .pay-buttons {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .footer-links {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+// ------------------------------------------------------
+// FORMULAIRE CONTACT — Envoi par EmailJS
+// ------------------------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+    const contactForm = document.getElementById("contactForm");
+    if (!contactForm) return;
+
+    contactForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const message = document.getElementById("message").value.trim();
+
+        if (!name || !email || !message) {
+            alert("Merci de remplir tous les champs.");
+            return;
+        }
+
+        // Données envoyées à EmailJS
+        const params = {
+            user_name: name,
+            user_email: email,
+            user_message: message
+        };
+
+        emailjs.send("service_xafynxq", "template_t7w9uuf", params)
+            .then(() => {
+                alert("Votre message a bien été envoyé. Merci !");
+                contactForm.reset();
+            })
+            .catch((err) => {
+                console.error("Erreur EmailJS :", err);
+                alert("Une erreur est survenue. Veuillez réessayer.");
+            });
+    });
+});

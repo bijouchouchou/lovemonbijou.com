@@ -1,0 +1,2394 @@
+﻿// ======================================
+// 💍 Bijoux ChoucHou - Script Principal
+// Version 3.0 - Janvier 2025
+// ======================================
+
+/* ===========================
+   📌 CONFIGURATION
+   =========================== */
+// ======================================
+// 💍 Bijoux ChoucHou - Script Principal
+// Version 3.0 - Janvier 2025
+// ======================================
+
+/* ===========================
+   📌 CONFIGURATION
+   =========================== */
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQfhuvjofIeGugPL69XD_Lf9G3xCylG-fTaaqau8JFbH3n2px13z7XSxSiGrX6D2vlDpPptZe-oCTtk/pub?gid=452020768&single=true&output=csv";
+const CLOUDINARY_BASE = "https://res.cloudinary.com/dcak9pjrt/image/upload/";
+const SELLER_EMAIL = "bijouchouchou74@gmail.com";
+
+// ===========================
+// 📌 FRAIS DE LIVRAISON
+// ===========================
+const FRAIS_LIVRAISON = 5.90;
+
+const STRIPE_SERVER_URL = "http://localhost:4242";
+
+// Configuration EmailJS
+function initEmailJS() {
+  return new Promise((resolve) => {
+    if (typeof emailjs !== 'undefined') {
+      emailjs.init("QvP4ltdzywwg7IolM");
+      console.log("✅ EmailJS initialisé");
+      resolve(true);
+    } else {
+      console.error("❌ EmailJS non disponible");
+      resolve(false);
+    }
+  });
+}
+
+// Fonction d'envoi d'email de confirmation
+async function sendOrderConfirmation(cart, customerEmail, customerName = "Client") {
+  // Vérifier qu'EmailJS est chargé
+  if (typeof emailjs === 'undefined') {
+    console.error("❌ EmailJS non chargé");
+    return false;
+  }
+  
+  const total = cart.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
+  
+  try {
+    const orderDetails = cart.map((item, index) => 
+      `${index + 1}. ${item.titre} - ${item.prix.toFixed(2)}€ x ${item.quantite} = ${(item.prix * item.quantite).toFixed(2)}€`
+    ).join('\n'); // CORRECTION: '\n' au lieu de '\\n'
+
+    // CORRECTION: Utiliser .then() au lieu de await pour éviter le conflit
+    return emailjs.send("service_xafynxq", "template_8xmiwsj", {
+      to_email: customerEmail,
+      to_name: customerName,
+      from_name: "Bijoux ChoucHou",
+      reply_to: "bijouchouchou74@gmail.com",
+      order_details: orderDetails,
+      total: total.toFixed(2),
+      order_date: new Date().toLocaleDateString('fr-FR')
+    })
+    .then(() => {
+      console.log("✅ Email de confirmation envoyé à", customerEmail);
+      return true;
+    })
+    .catch((error) => {
+      console.error("❌ Erreur envoi email:", error);
+      return false;
+    });
+    
+  } catch (error) {
+    console.error("❌ Erreur envoi email:", error);
+    return false;
+  }
+}
+
+// Initialiser EmailJS après le chargement
+document.addEventListener('DOMContentLoaded', () => {
+  setupProductClicks();
+  initEmailJS();
+});
+/* ===========================
+   🛠️ UTILITAIRES
+   =========================== */
+
+// Parse ligne CSV (gère guillemets et virgules internes)
+function parseCSVLine(line) {
+  const result = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+    else if (ch === '"') { inQuotes = !inQuotes; }
+    else if (ch === "," && !inQuotes) { result.push(cur); cur = ""; }
+    else { cur += ch; }
+  }
+  result.push(cur);
+  return result.map(s => s.replace(/^"|"$/g, "").trim());
+}
+
+// Échappement HTML
+function escapeHtml(s) {
+  if (s === undefined || s === null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// Message temporaire
+function showTempMessage(msg, duration = 2000) {
+  const div = document.createElement("div");
+  div.textContent = msg;
+  div.style.cssText = `
+    position: fixed; top: 20px; right: 20px; z-index: 10001;
+    background: #4CAF50; color: white; padding: 15px 20px;
+    border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    font-weight: bold; animation: fadeIn 0.3s;
+  `;
+  document.body.appendChild(div);
+  setTimeout(() => {
+    div.style.animation = "fadeOut 0.3s";
+    setTimeout(() => div.remove(), 300);
+  }, duration);
+}
+
+// Construction URL Cloudinary
+function getCloudinaryUrl(image) {
+  if (!image || image === "" || image === "undefined") {
+    return "https://via.placeholder.com/800x800?text=Image+indisponible";
+  }
+  
+  if (image.includes('res.cloudinary.com')) {
+    return image;
+  }
+  
+  if (image.startsWith('http://') || image.startsWith('https://')) {
+    return image;
+  }
+  
+  return `${CLOUDINARY_BASE}${image}`;
+}
+
+/* ===========================
+   📊 NORMALISATION PRODUIT
+   =========================== */
+function normalizeProduct(rawObj) {
+  const rawLower = {};
+  Object.keys(rawObj || {}).forEach(k => {
+    if (k) rawLower[String(k).toLowerCase().trim()] = rawObj[k];
+  });
+
+  const get = (keys) => {
+    if (!Array.isArray(keys)) keys = [keys];
+    for (const k of keys) {
+      const key = String(k).toLowerCase();
+      if (rawLower[key]) return String(rawLower[key]).trim();
+    }
+    return "";
+  };
+
+  const rawPriceStr = get(["price_euros", "price €", "price", "prix", "price€"]) || "0";
+  const cleanPrice = rawPriceStr.replace(/[^\d,.\-]/g, "").replace(",", ".");
+  const prix = parseFloat(cleanPrice) || 0;
+
+  const ref = get(["reference", "référence", "ref"]) || "";
+  const imageField = get(["image", "images", "photo", "photos"]) || "";
+
+  const autresImagesRaw = get(["images_supplémentaires", "images_supplementaires", "vues", "photos_supp", "autres_images"]);
+  const autresImages = autresImagesRaw 
+    ? autresImagesRaw.split(/[,;\/]+/).map(s => s.trim()).filter(Boolean) 
+    : [];
+
+  const taillesRaw = get(["tailles disponibles", "tailles_disponibles", "tailles"]);
+  const qteTailleRaw = get([
+    "quantité par taille", "quantité_par_taille", "quantite_par_taille",
+    "quantite par taille", "qte_par_taille", "qte_taille"
+  ]) || "";
+
+  const normalized = {
+    reference: ref,
+    type: get(["type de bijoux", "type"]),
+    description: get("description"),
+    image: imageField,
+    images: [imageField, ...autresImages].filter(Boolean),
+    couleur: get("couleur"),
+    titre: get(["titre", "title", "name"]),
+    or: get(["poids or", "poids_or", "poids"]),
+    pierres: get(["type de pierres", "pierres"]),
+    poidsPierre: get(["poids pierre", "poids_pierre"]),
+    tailles: taillesRaw,
+    qteTaille: qteTailleRaw,
+    prix,
+    stock: get("stock"),
+    fabrication: (get(["fabrication_possible", "fabrication possible", "fabrication"]) || "").toUpperCase(),
+    evenement: get(["evenement", "évènement", "event"])
+  };
+
+  if (!normalized.image && normalized.reference) {
+    normalized.image = `v1/${encodeURIComponent(normalized.reference)}.jpg`;
+  }
+  
+  if (!normalized.images || normalized.images.length === 0) {
+    normalized.images = [normalized.image];
+  }
+
+  normalized.images = normalized.images.filter(img => img && img !== "");
+
+  return normalized;
+}
+
+/* ===========================
+   🎨 AFFICHAGE PRODUITS
+   =========================== */
+function renderProducts(products) {
+  const container = document.querySelector("#product-list");
+  if (!container) return;
+
+  if (!products || products.length === 0) {
+    container.innerHTML = "<p>Aucun bijou trouvé 🕊️</p>";
+    return;
+  }
+
+  container.innerHTML = products
+  .map((p, index) => {
+    const imageUrl = getCloudinaryUrl(p.image);
+    const prixAffiche = p.prix ? `${p.prix.toFixed(2)} €` : "Prix non disponible";
+
+    return `
+      <div class="product-card" data-ref="${escapeHtml(p.reference)}" data-index="${index}">
+        <img src="${imageUrl}" 
+             alt="${escapeHtml(p.titre)}" 
+             class="product-img"
+             onerror="this.src='https://via.placeholder.com/300x300?text=Image+indisponible'" />
+        <h3 class="product-title">${escapeHtml(p.titre || "Sans titre")} carats</h3>
+        ${p.description ? `<p class="product-description">${escapeHtml(p.description)}</p>` : ''}
+        <p class="product-price">${prixAffiche}</p>
+        <button class="view-details-btn">
+          👁️ Voir les détails
+        </button>
+      </div>
+    `;
+  })
+    .join("");
+
+  container.querySelectorAll(".product-card").forEach((card) => {
+    const index = parseInt(card.dataset.index);
+    const produit = products[index];
+
+    card.addEventListener("click", (e) => {
+      if (!e.target.classList.contains("view-details-btn")) {
+        if (produit) openProductModal(produit);
+      }
+    });
+
+    const btn = card.querySelector(".view-details-btn");
+    if (btn) {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (produit) openProductModal(produit);
+      });
+    }
+  });
+}
+
+/* ===========================
+   🪟 MODALE PRODUIT
+   =========================== */
+function openProductModal(product) {
+  if (!product) return;
+
+  const oldModal = document.getElementById("productModal");
+  if (oldModal) oldModal.remove();
+
+  const mainImageUrl = getCloudinaryUrl(product.image);
+  const allImages = product.images && product.images.length > 0 
+    ? product.images 
+    : [product.image];
+
+  const modal = document.createElement("div");
+  modal.id = "productModal";
+  modal.className = "modal-overlay";
+  
+  modal.innerHTML = `
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Fermer">✖</button>
+
+      <div class="modal-grid">
+        <div class="modal-left">
+          <div class="image-view">
+            <img src="${mainImageUrl}" 
+                 alt="${escapeHtml(product.titre)}" 
+                 class="modal-main-img"
+                 onerror="this.src='https://via.placeholder.com/800x800?text=Image+indisponible'" />
+          </div>
+
+          ${allImages.length > 1 ? `
+            <div class="modal-thumbs">
+              ${allImages.map((img, idx) => `
+                <img src="${getCloudinaryUrl(img)}" 
+                     alt="Aperçu ${idx + 1}" 
+                     class="thumb-img ${idx === 0 ? 'active' : ''}"
+                     data-full-url="${getCloudinaryUrl(img)}"
+                     onerror="this.style.display='none'" />
+              `).join("")}
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="modal-right">
+          <h2>${escapeHtml(product.titre)} carats</h2>
+          <p class="modal-ref">Réf : <strong>${escapeHtml(product.reference)}</strong></p>
+          
+          ${product.description ? `
+            <div class="modal-desc">
+              <p>${escapeHtml(product.description)}</p>
+            </div>
+          ` : ''}
+
+          <p class="modal-price">${product.prix.toFixed(2)} €</p>
+
+          ${product.couleur ? `
+            <p class="modal-info"><strong>Couleur :</strong> ${escapeHtml(product.couleur)}</p>
+          ` : ''}
+
+          ${product.or ? `
+            <p class="modal-info"><strong>Or :</strong> ${escapeHtml(product.or)}</p>
+          ` : ''}
+
+        ${product.pierres ? `
+  <p class="modal-info"><strong>Pierres :</strong> ${escapeHtml(product.pierres)}</p>
+` : ''}
+
+${product.poidsPierre ? `
+  <p class="modal-info"><strong>Poids pierre :</strong> ${escapeHtml(product.poidsPierre)}</p>
+` : ''}
+          ${product.tailles ? `
+            <div class="modal-size-selector">
+              <label for="taille"><strong>Taille :</strong></label>
+              <select id="taille">
+                ${product.tailles.split(/[;,/]+/).map(t => {
+                  const taille = t.trim();
+                  return `<option value="${escapeHtml(taille)}">${escapeHtml(taille)}</option>`;
+                }).join("")}
+              </select>
+            </div>
+          ` : ''}
+
+          <button class="add-to-cart-modal-btn">
+  🛒 Ajouter au panier
+</button>
+
+${(product.fabrication || "").toUpperCase() === "OUI" ? `
+  <button class="fabrication-btn" style="
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white; 
+    border: none; 
+    padding: 16px 28px; 
+    border-radius: 10px; 
+    font-size: 17px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    margin-top: 10px;
+    width: 100%;
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    transition: all 0.3s;
+  ">
+    ✨ Commander sur mesure
+  </button>
+` : ''}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const closeBtn = modal.querySelector(".modal-close");
+  closeBtn.addEventListener("click", () => modal.remove());
+
+  modal.addEventListener("click", (e) => {
+    if (e.target.classList.contains("modal-overlay")) {
+      modal.remove();
+    }
+  });
+
+  const mainImg = modal.querySelector(".modal-main-img");
+  modal.querySelectorAll(".thumb-img").forEach((thumb) => {
+    thumb.addEventListener("click", () => {
+      const fullUrl = thumb.dataset.fullUrl;
+      if (mainImg && fullUrl) {
+        mainImg.src = fullUrl;
+      }
+      
+      modal.querySelectorAll(".thumb-img").forEach(t => t.classList.remove("active"));
+      thumb.classList.add("active");
+    });
+  });
+
+  const addToCartBtn = modal.querySelector(".add-to-cart-modal-btn");
+  if (addToCartBtn) {
+    addToCartBtn.addEventListener("click", () => {
+      const selectElement = modal.querySelector("select#taille");
+      const selectedSize = selectElement ? selectElement.value : "";
+      
+      addToCart(product, selectedSize);
+      modal.remove();
+    });
+  }
+// ⭐⭐ GESTION DU BOUTON FABRICATION ⭐⭐
+const fabBtn = modal.querySelector(".fabrication-btn");
+if (fabBtn) {
+    fabBtn.addEventListener("click", () => {
+        const selectElement = modal.querySelector("select#taille");
+        const selectedSize = selectElement ? selectElement.value : "";
+        
+        console.log("✨ Bouton fabrication cliqué - Ref:", product.reference);
+        
+        // D'ABORD ouvrir la modal sur mesure
+        const customModal = document.getElementById('custom-order-modal');
+        if (customModal) {
+            customModal.style.display = 'flex';
+            console.log("🟢 Modal sur mesure ouverte");
+            
+            // Pré-remplir la description
+            const descriptionField = customModal.querySelector('textarea[name="description"]');
+            if (descriptionField) {
+                descriptionField.value = `Référence: ${product.reference}\nProduit: ${product.titre}${selectedSize ? `\nTaille souhaitée: ${selectedSize}` : ''}\n\n---\nDescription de mon projet sur mesure :`;
+                console.log("🟢 Description pré-remplie");
+            }
+            
+            // PUIS fermer la modal produit après un court délai
+            setTimeout(() => {
+                modal.remove();
+                console.log("🔴 Modal produit fermée");
+            }, 100);
+            
+        } else {
+            console.error("❌ Modal sur mesure non trouvée");
+            modal.remove();
+        }
+    });
+} 
+// Gestion de la touche ESC pour fermer la modal
+const escHandler = (e) => {
+    if (e.key === "Escape") {
+        modal.remove();
+        document.removeEventListener("keydown", escHandler);
+    }
+};
+document.addEventListener("keydown", escHandler);
+  
+}
+
+/* ===========================
+   🛒 GESTION PANIER
+   =========================== */
+
+function getCart() {
+  try {
+    return JSON.parse(localStorage.getItem("cart") || "[]");
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCart(cart) {
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+function addToCart(product, selectedSize = "") {
+  if (!product) return;
+
+  let cart = getCart();
+
+  const existingIndex = cart.findIndex(
+    (item) => item.reference === product.reference && item.taille === selectedSize
+  );
+
+  if (existingIndex !== -1) {
+    cart[existingIndex].quantite += 1;
+  } else {
+    cart.push({
+      reference: product.reference,
+      titre: product.titre,
+      prix: product.prix,
+      image: product.image,
+      taille: selectedSize,
+      quantite: 1,
+    });
+  }
+
+  saveCart(cart);
+  updateCartIconCount();
+  animateCartIcon();
+  showTempMessage("✅ Ajouté au panier !", 1500);
+}
+
+function removeFromCart(reference, taille) {
+  let cart = getCart();
+  cart = cart.filter(i => !(i.reference === reference && i.taille === taille));
+  saveCart(cart);
+  updateCartIconCount();
+  renderCartPanel();
+}
+
+function clearCart() {
+  saveCart([]); // ← Utiliser saveCart avec un tableau vide
+  updateCartIconCount();
+  renderCartPanel();
+  console.log("🗑️ Panier vidé");
+}
+
+function updateCartIconCount() {
+  const cart = getCart();
+  const count = cart.reduce((sum, item) => sum + item.quantite, 0);
+  const countEl = document.getElementById("cartCount");
+  if (countEl) {
+    countEl.textContent = count;
+    countEl.style.display = count > 0 ? "flex" : "none";
+  }
+}
+
+function animateCartIcon() {
+  const icon = document.getElementById("cartIcon");
+  if (!icon) return;
+  icon.classList.remove("cart-animate");
+  void icon.offsetWidth;
+  icon.classList.add("cart-animate");
+  setTimeout(() => icon.classList.remove("cart-animate"), 900);
+}
+
+/* ===========================
+   🎨 ICÔNE PANIER FLOTTANTE
+   =========================== */
+function ensureCartIcon() {
+  console.log("🔧 ensureCartIcon appelé");
+  
+  // ✅ Cherche l'icône dans le DOM
+  let icon = document.getElementById("cartIcon");
+  
+  if (!icon) {
+    console.log("🆕 Création de l'icône panier...");
+    icon = document.createElement("div");
+    icon.id = "cartIcon";
+    icon.className = "cart-icon";
+    icon.innerHTML = `🛒<div id="cartCount" class="cart-count">0</div>`;
+    document.body.appendChild(icon);
+    console.log("✅ Icône créée et ajoutée au DOM");
+  } else {
+    console.log("✅ Icône déjà présente");
+  }
+
+  // Met à jour le compteur
+  updateCartIconCount();
+
+  // ✅ Supprime les anciens événements (évite les doublons)
+  const newIcon = icon.cloneNode(true);
+  icon.parentNode.replaceChild(newIcon, icon);
+  icon = newIcon; // Mise à jour de la référence
+
+  // ✅ Ajoute l'événement de clic
+  icon.addEventListener("click", () => {
+    console.log("🛒 Clic sur l'icône panier détecté !");
+    
+    const panel = document.getElementById("cart-panel");
+    console.log("📋 Panneau trouvé :", panel ? "OUI" : "NON");
+    
+    if (panel) {
+      const wasOpen = panel.classList.contains("open");
+      panel.classList.toggle("open");
+      
+      console.log(`📄 Panneau ${wasOpen ? 'fermé' : 'ouvert'}`);
+      console.log("Classes actuelles :", panel.className);
+      
+      if (panel.classList.contains("open")) {
+        renderCartPanel();
+      }
+    } else {
+      console.error("❌ Panneau #cart-panel introuvable dans le DOM");
+    }
+  });
+
+  console.log("✅ Événement de clic configuré");
+  return icon;
+}
+
+function ensureCartIconStyles() {
+  if (document.getElementById("cart-icon-styles")) return;
+
+  const style = document.createElement("style");
+  style.id = "cart-icon-styles";
+  style.textContent = `
+    .cart-icon {
+      position: fixed; bottom: 20px; right: 20px;
+      background: #ff6b6b; color: white;
+      width: 60px; height: 60px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 999; transition: transform 0.2s;
+    }
+    .cart-icon:hover { transform: scale(1.1); }
+    .cart-icon.cart-animate { animation: cartBounce 0.6s ease; }
+    
+    @keyframes cartBounce {
+      0%, 100% { transform: scale(1); }
+      25% { transform: scale(1.2); }
+      50% { transform: scale(0.9); }
+      75% { transform: scale(1.15); }
+    }
+    
+    .cart-count {
+      position: absolute; top: -5px; right: -5px;
+      background: gold; color: #333;
+      border-radius: 50%; width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    #cart-panel {
+      position: fixed; top: 0; right: -420px;
+      width: 400px; max-width: 100%; height: 100vh;
+      background: white; box-shadow: -2px 0 20px rgba(0,0,0,0.3);
+      transition: right 0.3s ease; z-index: 1000;
+      display: flex; flex-direction: column;
+    }
+    #cart-panel.open { right: 0; }
+    
+    .cart-header {
+      display: flex; justify-content: space-between;
+      align-items: center; padding: 20px;
+      background: #ff6b6b; color: white;
+      flex-shrink: 0;
+    }
+    .cart-header h2 { margin: 0; font-size: 20px; }
+    .close-cart {
+      background: none; border: none;
+      color: white; font-size: 24px;
+      cursor: pointer; padding: 0;
+      width: 30px; height: 30px;
+    }
+
+    .cart-items-list {
+      flex: 1; overflow-y: auto; padding: 15px;
+    }
+    .cart-item {
+      display: flex; 
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #eee; 
+      gap: 12px;
+    }
+
+    .cart-item-image {
+      flex-shrink: 0;
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f5f5f5;
+    }
+
+    .cart-item-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .cart-item-info {
+      flex: 1;
+    }
+
+    .cart-item-info h4 {
+      margin: 0 0 5px 0; 
+      font-size: 15px;
+    }
+    .cart-item-details {
+      margin: 5px 0; 
+      font-size: 13px; 
+      color: #666;
+    }
+    .cart-item-price {
+      margin: 5px 0 0 0; 
+      font-weight: bold; 
+      color: #333;
+      font-size: 14px;
+    }
+    .cart-item-remove {
+      background: #ff4444; 
+      border: none;
+      color: white; 
+      width: 36px; 
+      height: 36px;
+      border-radius: 50%; 
+      cursor: pointer;
+      font-size: 18px; 
+      flex-shrink: 0;
+    }
+
+    .cart-footer {
+      padding: 20px; 
+      background: #f5f5f5;
+      border-top: 2px solid #ddd; 
+      flex-shrink: 0;
+    }
+    .cart-total {
+      display: flex; 
+      justify-content: space-between;
+      font-size: 18px; 
+      margin-bottom: 15px;
+    }
+    
+    .cart-checkout, 
+    .cart-checkout-email, 
+    .cart-clear {
+      width: 100%; 
+      padding: 12px;
+      border: none; 
+      cursor: pointer;
+      font-size: 15px; 
+      font-weight: bold;
+      border-radius: 8px; 
+      margin-bottom: 10px;
+      transition: all 0.2s;
+    }
+
+    .cart-checkout {
+      background: #4CAF50; 
+      color: white;
+    }
+    .cart-checkout:hover { 
+      background: #45a049; 
+      transform: translateY(-2px);
+    }
+
+    .cart-checkout-email {
+      background: #2196F3; 
+      color: white;
+    }
+    .cart-checkout-email:hover { 
+      background: #0b7dda; 
+      transform: translateY(-2px);
+    }
+
+    .cart-clear {
+      background: #ddd; 
+      color: #333;
+    }
+    .cart-clear:hover { 
+      background: #ccc; 
+    }
+
+    @media (max-width: 768px) {
+      #cart-panel { 
+        width: 100%; 
+        right: -100%; 
+      }
+    }
+@media (max-width: 768px) {
+      .customer-email-section input {
+        font-size: 16px !important;
+        min-height: 44px !important;
+      }
+      
+      #cart-panel {
+        width: 100%;
+        right: -100%;
+      }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// ===========================
+// PANNEAU PANIER  
+// ===========================
+function renderCartPanel() {
+  const panel = document.getElementById("cart-panel");
+  if (!panel) return;
+
+  const cart = getCart();
+
+  if (cart.length === 0) {
+    panel.innerHTML = `
+      <div class="cart-header">
+        <h2>Mon Panier</h2>
+        <button class="close-cart">✖</button>
+      </div>
+      <div style="padding: 40px; text-align: center; color: #999;">
+        <p style="font-size: 48px;">🛒</p>
+        <p>Votre panier est vide</p>
+      </div>
+    `;
+
+    panel.querySelector(".close-cart")?.addEventListener("click", () => {
+      panel.classList.remove("open");
+    });
+
+    return;
+  }
+
+  const total = cart.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
+
+  const itemsHTML = cart.map(item => `
+    <div class="cart-item">
+      <img src="${item.image || 'assets/placeholder.jpg'}" alt="${item.titre}" class="cart-item-img">
+      <div class="cart-item-details">
+        <h4>${item.titre}</h4>
+        <p class="cart-item-size">Taille: ${item.taille || 'N/A'}</p>
+        <p class="cart-item-price">${item.prix.toFixed(2)}€ x ${item.quantite}</p>
+      </div>
+      <button class="cart-item-remove" data-ref="${item.reference}" data-taille="${item.taille}">
+        🗑️
+      </button>
+    </div>
+  `).join('');
+
+  panel.innerHTML = `
+    <div class="cart-header">
+      <h2>Mon Panier (${cart.length})</h2>
+      <button class="close-cart">✖</button>
+    </div>
+
+    <div class="cart-items">
+      ${itemsHTML}
+    </div>
+
+    <div class="cart-footer">
+      <div class="cart-total">
+        <strong>Total :</strong>
+        <span>${total.toFixed(2)} €</span>
+      </div>
+
+      <div class="cart-email-input">
+        <label for="customer-email">📧 Email pour confirmation :</label>
+        <input 
+          type="email" 
+          id="customer-email" 
+          placeholder="votre@email.com"
+          required
+        />
+      </div>
+
+      <button id="checkout-stripe-btn" class="cart-checkout-btn">
+        💳 Payer en ligne (Stripe)
+      </button>
+
+      <button id="checkout-email-btn" class="cart-email-btn">
+        📧 Commander par Email
+      </button>
+
+      <button class="cart-clear">
+        🗑️ Vider le panier
+      </button>
+    </div>
+  `;
+
+  // ÉVÉNEMENTS
+  panel.querySelector(".close-cart")?.addEventListener("click", () => {
+    panel.classList.remove("open");
+  });
+
+  panel.querySelectorAll(".cart-item-remove").forEach(btn => {
+    btn.addEventListener("click", () => {
+      removeFromCart(btn.dataset.ref, btn.dataset.taille);
+    });
+  });
+
+  panel.querySelector("#checkout-stripe-btn")?.addEventListener("click", () => {
+    const customerEmail = document.getElementById("customer-email")?.value;
+    
+    if (!customerEmail) {
+      showTempMessage("❌ Veuillez entrer votre email", 3000);
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail)) {
+      showTempMessage("❌ Email invalide", 3000);
+      return;
+    }
+    
+    if (cart.length === 0) {
+      showTempMessage("❌ Panier vide", 3000);
+      return;
+    }
+    
+    localStorage.setItem("customer_email", customerEmail);
+    localStorage.setItem("pending_cart", JSON.stringify(cart));
+    
+    console.log("💳 Redirection Stripe...");
+    checkoutWithStripe(cart);
+  });
+
+  panel.querySelector("#checkout-email-btn")?.addEventListener("click", async () => {
+    const customerEmail = document.getElementById("customer-email")?.value;
+    const customerName = "Client";
+    
+    if (!customerEmail) {
+      showTempMessage("❌ Veuillez entrer votre email", 3000);
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail)) {
+      showTempMessage("❌ Email invalide", 3000);
+      return;
+    }
+    
+    if (cart.length === 0) {
+      showTempMessage("❌ Panier vide", 3000);
+      return;
+    }
+    
+    console.log("📧 Commande par email...");
+    
+    try {
+      showTempMessage("📧 Envoi en cours...", 10000);
+      
+      console.log("📤 Email client...");
+      await sendOrderConfirmation(cart, customerEmail, customerName);
+      console.log("✅ Email client OK");
+      
+      console.log("📤 Email vendeur...");
+      await sendOrderByEmail(cart, customerEmail, customerName);
+      console.log("✅ Email vendeur OK");
+      
+      showTempMessage("✅ Commande envoyée !", 5000);
+      
+      clearCart();
+      
+      setTimeout(() => {
+        panel.classList.remove("open");
+      }, 2000);
+      
+    } catch (error) {
+      console.error("❌ Erreur:", error);
+      showTempMessage("❌ Erreur. Contactez-nous.", 5000);
+    }
+  });
+
+  panel.querySelector(".cart-clear")?.addEventListener("click", () => {
+    if (confirm("Vider le panier ?")) {
+      clearCart();
+    }
+  });
+}
+
+/* ===========================
+   💳 STRIPE CHECKOUT
+   =========================== */
+const checkoutWithStripe = async (cart) => {
+  if (!cart || cart.length === 0) {
+    showTempMessage("❌ Panier vide", 2000);
+    return;
+  }
+
+  try {
+    console.log("🛒 Envoi du panier à Stripe:", cart);
+
+    const res = await fetch(`${STRIPE_SERVER_URL}/create-checkout-session`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json" 
+      },
+      body: JSON.stringify({ items: cart }),
+    });
+
+    console.log("📡 Réponse serveur:", res.status);
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || `Erreur serveur ${res.status}`);
+    }
+
+    const session = await res.json();
+    console.log("✅ Session Stripe créée:", session.sessionId);
+
+    if (session.url) {
+      window.location.href = session.url;
+    } else {
+      throw new Error("URL de paiement manquante");
+    }
+
+  } catch (err) {
+    console.error("❌ Erreur Stripe:", err);
+    
+    if (err.message.includes("Failed to fetch")) {
+      showTempMessage(
+        "⚠️ Serveur Stripe non accessible", 
+        5000
+      );
+      
+      setTimeout(() => {
+        if (confirm("Paiement indisponible.\n\nCommander par email ?")) {
+          const customerEmail = localStorage.getItem("customer_email");
+          if (customerEmail) {
+            sendOrderByEmailFallback(cart, customerEmail);
+          } else {
+            showTempMessage("❌ Email manquant", 2000);
+          }
+        }
+      }, 1500);
+      
+    } else {
+      showTempMessage(`❌ Erreur: ${err.message}`, 4000);
+    }
+  }
+};
+
+// Fallback si Stripe échoue
+async function sendOrderByEmailFallback(cart, customerEmail) {
+  try {
+    showTempMessage("📧 Envoi par email...", 5000);
+    await sendOrderConfirmation(cart, customerEmail);
+    await sendOrderByEmail(cart, customerEmail);
+    showTempMessage("✅ Commande envoyée !", 5000);
+    clearCart();
+  } catch (error) {
+    console.error("❌ Erreur:", error);
+    showTempMessage("❌ Erreur. Contactez-nous.", 5000);
+  }
+}
+/* ===========================
+   📧 GESTION EMAILS
+   =========================== */
+
+// Envoi email de confirmation CLIENT
+async function sendOrderConfirmation(cart, customerEmail, customerName = "Client") {
+  return new Promise((resolve, reject) => {
+    if (typeof emailjs === 'undefined') {
+      console.error("❌ EmailJS non chargé");
+      reject(new Error("EmailJS non disponible"));
+      return;
+    }
+    
+    const total = cart.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
+    
+    const orderDetails = cart.map((item, index) => 
+      `${index + 1}. ${item.titre} - Taille: ${item.taille || 'N/A'}
+Prix: ${item.prix.toFixed(2)}€ x ${item.quantite} = ${(item.prix * item.quantite).toFixed(2)}€`
+    ).join('\n\n');
+
+    const templateParams = {
+      to_email: customerEmail,
+      to_name: customerName,
+      from_name: "Love Mon Bijou",
+      reply_to: "bijouchouchou74@gmail.com",
+      order_details: orderDetails,
+      total: total.toFixed(2),
+      order_date: new Date().toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    };
+
+    console.log("📧 Envoi email CLIENT à:", customerEmail);
+
+    emailjs.send("service_xafynxq", "template_8xmiwsj", templateParams)
+      .then((response) => {
+        console.log("✅ Email CLIENT envoyé!", response.status);
+        resolve(true);
+      })
+      .catch((error) => {
+        console.error("❌ Erreur email CLIENT:", error);
+        reject(error);
+      });
+  });
+}
+
+// Envoi email de commande VENDEUR
+async function sendOrderByEmail(cart, customerEmail, customerName = "Client") {
+  if (typeof emailjs === 'undefined') {
+    console.error("❌ EmailJS non chargé");
+    throw new Error("EmailJS non disponible");
+  }
+  
+  const total = cart.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
+  
+  const orderDetails = cart.map((item, index) => 
+    `${index + 1}. ${item.titre}
+- Taille: ${item.taille || 'N/A'}
+- Référence: ${item.reference || 'N/A'}
+- Prix unitaire: ${item.prix.toFixed(2)}€
+- Quantité: ${item.quantite}
+- Sous-total: ${(item.prix * item.quantite).toFixed(2)}€`
+  ).join('\n\n');
+
+  const templateParams = {
+    to_email: "bijouchouchou74@gmail.com", // VOTRE EMAIL
+    to_name: "Love Mon Bijou",
+    from_name: customerName,
+    reply_to: customerEmail,
+    customer_email: customerEmail,
+    customer_name: customerName,
+    order_details: orderDetails,
+    total: total.toFixed(2),
+    order_date: new Date().toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  };
+
+  console.log("📧 Envoi email VENDEUR");
+
+  try {
+    // Utilisez le même template ou créez-en un spécifique
+    const response = await emailjs.send("service_xafynxq", "template_8xmiwsj", templateParams);
+    console.log("✅ Email VENDEUR envoyé:", response.status);
+    return true;
+  } catch (error) {
+    console.error("❌ Erreur email VENDEUR:", error);
+    throw error;
+  }
+}
+
+// Fonction fallback pour commande par email si Stripe échoue
+async function sendOrderByEmailFallback(cart, customerEmail) {
+  try {
+    showTempMessage("📧 Envoi de votre commande par email...", 5000);
+    
+    await sendOrderConfirmation(cart, customerEmail);
+    await sendOrderByEmail(cart, customerEmail);
+    
+    showTempMessage("✅ Commande envoyée par email !", 5000);
+    clearCart();
+    
+  } catch (error) {
+    console.error("❌ Erreur envoi email:", error);
+    showTempMessage("❌ Erreur lors de l'envoi. Contactez-nous.", 5000);
+  }
+}
+
+/* ===========================
+   🛒 GESTION DU PANIER
+   =========================== */
+
+// Vos listeners de boutons
+function attachCartListeners(panel) {
+  panel.querySelector(".close-cart")?.addEventListener("click", () => {
+    panel.classList.remove("open");
+  });
+
+  panel.querySelectorAll(".cart-item-remove").forEach(btn => {
+    btn.addEventListener("click", () => {
+      removeFromCart(btn.dataset.ref, btn.dataset.taille);
+    });
+  });
+
+  // ========================================
+  // 💳 BOUTON PAIEMENT STRIPE
+  // ========================================
+  panel.querySelector("#checkout-stripe-btn")?.addEventListener("click", () => {
+    const customerEmail = document.getElementById("customer-email")?.value;
+    
+    if (!customerEmail) {
+      showTempMessage("❌ Veuillez entrer votre email pour la confirmation", 3000);
+      return;
+    }
+    
+    // Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail)) {
+      showTempMessage("❌ Email invalide", 3000);
+      return;
+    }
+    
+    if (cart.length === 0) {
+      showTempMessage("❌ Votre panier est vide", 3000);
+      return;
+    }
+    
+    // Sauvegarder l'email pour l'envoi après paiement
+    localStorage.setItem("customer_email", customerEmail);
+    localStorage.setItem("pending_cart", JSON.stringify(cart));
+    
+    console.log("💳 Redirection vers Stripe...");
+    checkoutWithStripe(cart);
+  });
+
+  // ========================================
+  // 📧 BOUTON COMMANDE PAR EMAIL
+  // ========================================
+  panel.querySelector("#checkout-email-btn")?.addEventListener("click", async () => {
+    const customerEmail = document.getElementById("customer-email")?.value;
+    const customerName = "Client";
+    
+    if (!customerEmail) {
+      showTempMessage("❌ Veuillez entrer votre email", 3000);
+      return;
+    }
+    
+    // Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail)) {
+      showTempMessage("❌ Email invalide", 3000);
+      return;
+    }
+    
+    if (cart.length === 0) {
+      showTempMessage("❌ Votre panier est vide", 3000);
+      return;
+    }
+    
+    console.log("📧 Commande par email...");
+    
+    try {
+      showTempMessage("📧 Envoi en cours...", 10000);
+      
+      // Envoyer email au client
+      console.log("📤 Email client...");
+      await sendOrderConfirmation(cart, customerEmail, customerName);
+      console.log("✅ Email client OK");
+      
+      // Envoyer email au vendeur
+      console.log("📤 Email vendeur...");
+      await sendOrderByEmail(cart, customerEmail, customerName);
+      console.log("✅ Email vendeur OK");
+      
+      // Succès
+      showTempMessage("✅ Commande envoyée ! Vérifiez votre email.", 5000);
+      
+      // Vider le panier
+      clearCart();
+      
+      // Fermer après 2 secondes
+      setTimeout(() => {
+        panel.classList.remove("open");
+      }, 2000);
+      
+    } catch (error) {
+      console.error("❌ Erreur:", error);
+      console.error("Détails:", error.text || error.message);
+      showTempMessage("❌ Erreur. Réessayez ou contactez-nous.", 5000);
+    }
+  });
+
+  panel.querySelector(".cart-clear")?.addEventListener("click", () => {
+    if (confirm("Vider tout le panier ?")) clearCart();
+  });
+}
+
+/* ===========================
+   🎯 GESTION RETOUR STRIPE
+   =========================== */
+function handleStripeSuccess() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const paymentSuccess = urlParams.get('payment_success');
+  
+  if (paymentSuccess === 'true') {
+    const customerEmail = localStorage.getItem("customer_email");
+    const pendingCart = localStorage.getItem("pending_cart");
+    
+    if (customerEmail && pendingCart) {
+      console.log("💳 Paiement Stripe OK, envoi email...");
+      
+      const cart = JSON.parse(pendingCart);
+      
+      sendOrderConfirmation(cart, customerEmail, "Client")
+        .then(() => {
+          console.log("✅ Email post-Stripe envoyé");
+          showTempMessage("✅ Paiement réussi ! Email envoyé.", 5000);
+        })
+        .catch(error => {
+          console.error("❌ Erreur email:", error);
+          showTempMessage("✅ Paiement réussi ! (Email non envoyé)", 3000);
+        })
+        .finally(() => {
+          localStorage.removeItem("customer_email");
+          localStorage.removeItem("pending_cart");
+        });
+      
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+}
+
+/* ===========================
+   🚀 INITIALISATION
+   =========================== */
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log("🔄 Initialisation...");
+  
+  // Initialiser EmailJS
+  await initEmailJS();
+  
+  // Vérifier retour Stripe
+  handleStripeSuccess();
+  
+  // Reste de votre code d'initialisation...
+  // Charger produits, etc.
+});
+/* ===========================
+   📧 COMMANDE PAR EMAIL
+   =========================== */
+function sendOrderByEmail(cart) {
+  if (!cart || cart.length === 0) {
+    showTempMessage("❌ Panier vide", 2000);
+    return;
+  }
+
+  const total = cart.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
+  
+  let body = "Bonjour,\n\nJe souhaite commander les articles suivants :\n\n";
+  
+  cart.forEach((item, index) => {
+    body += `${index + 1}. ${item.titre}\n`;
+    body += `   - Référence : ${item.reference}\n`;
+    if (item.taille) {
+      body += `   - Taille : ${item.taille}\n`;
+    }
+    body += `   - Prix unitaire : ${item.prix.toFixed(2)} €\n`;
+    body += `   - Quantité : ${item.quantite}\n`;
+    body += `   - Sous-total : ${(item.prix * item.quantite).toFixed(2)} €\n\n`;
+  });
+  
+  body += `TOTAL : ${total.toFixed(2)} €\n\n`;
+  body += "Merci de me confirmer la disponibilité et les modalités de paiement.\n\nCordialement.";
+  
+  const subject = encodeURIComponent("Commande Bijoux ChoucHou");
+  const emailBody = encodeURIComponent(body);
+  const mailtoLink = `mailto:${SELLER_EMAIL}?subject=${subject}&body=${emailBody}`;
+  
+  window.location.href = mailtoLink;
+  showTempMessage("📧 Ouverture de votre client email...", 3000);
+}
+
+/* ===========================
+   🛠️ FABRICATION SUR MESURE
+   =========================== */
+function openFabricationPage(ref, titre, taille) {
+  const fabricationPageExists = false; // Mettre true si vous avez cette page
+  
+  if (fabricationPageExists) {
+    const url = `fabrication.html?ref=${encodeURIComponent(ref || "")}&titre=${encodeURIComponent(titre || "")}&taille=${encodeURIComponent(taille || "")}`;
+    window.location.href = url;
+  } else {
+    const subject = encodeURIComponent(`Demande sur-mesure - ${titre}`);
+    const body = encodeURIComponent(
+      `Bonjour,\n\nJe souhaite commander sur mesure le bijou suivant :\n\n` +
+      `- Référence : ${ref}\n` +
+      `- Titre : ${titre}\n` +
+      `${taille ? `- Taille souhaitée : ${taille}\n` : ''}` +
+      `\nMerci de me contacter pour discuter des détails.\n\nCordialement.`
+    );
+    
+    const mailtoLink = `mailto:${SELLER_EMAIL}?subject=${subject}&body=${body}`;
+    window.location.href = mailtoLink;
+    
+    showTempMessage("📧 Ouverture de votre client email pour demande sur-mesure...", 3000);
+  }
+}
+
+/* ===========================
+   🔍 FILTRES
+   =========================== */
+function populateFilters() {
+  fillSelect("#typeFilter", uniqueValues(allProducts.map(p => p.type)), "Type");
+  fillSelect("#titleFilter", uniqueValues(allProducts.map(p => p.titre)), "Titre");
+  fillSelect("#colorFilter", uniqueValues(allProducts.map(p => p.couleur)), "Couleur");
+  fillSelect("#stockFilter", uniqueValues(allProducts.map(p => p.stock)), "Stock");
+  fillSelect("#fabFilter", uniqueValues(allProducts.map(p => p.fabrication)), "Fabrication");
+
+  const allEvents = allProducts.flatMap(p =>
+    (p.evenement || "").split(/[,;]+/).map(s => s.trim()).filter(Boolean)
+  );
+  fillSelect("#eventFilter", uniqueValues(allEvents), "Évènement");
+
+  document.querySelectorAll("#searchInput, #typeFilter, #titleFilter, #colorFilter, #stockFilter, #fabFilter, #eventFilter, #sortSelect")
+    .forEach(el => el && el.addEventListener("input", applyFilters));
+}
+
+function fillSelect(selector, values, label) {
+  const el = document.querySelector(selector);
+  if (!el) return;
+  const first = el.querySelector("option")?.outerHTML || `<option value="">— ${label} —</option>`;
+  el.innerHTML = first + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+}
+
+function uniqueValues(arr) {
+  return [...new Set(arr.filter(Boolean))].sort();
+}
+
+function applyFilters() {
+  const q = (document.querySelector("#searchInput")?.value || "").toLowerCase().trim();
+  const type = document.querySelector("#typeFilter")?.value || "";
+  const titreValue = (document.querySelector("#titleFilter")?.value || "").toLowerCase().trim();
+  const couleur = document.querySelector("#colorFilter")?.value || "";
+  const stock = document.querySelector("#stockFilter")?.value || "";
+  const fabrication = document.querySelector("#fabFilter")?.value || "";
+  const event = (document.querySelector("#eventFilter")?.value || "").toLowerCase().trim();
+  const sort = document.querySelector("#sortSelect")?.value || "";
+
+  let res = allProducts.filter(p => {
+    const matchesQ = !q || [p.reference, p.titre, p.type, p.description].join(" ").toLowerCase().includes(q);
+    const matchesType = !type || p.type === type;
+    const matchesTitre = !titreValue || (p.titre || "").toLowerCase().includes(titreValue);
+    const matchesCouleur = !couleur || p.couleur === couleur;
+    const matchesStock = !stock || String(p.stock) === stock;
+    const matchesFab = !fabrication || p.fabrication === fabrication;
+    const matchesEvent = !event || ((p.evenement || "").toLowerCase().includes(event));
+    return matchesQ && matchesType && matchesTitre && matchesCouleur && matchesStock && matchesFab && matchesEvent;
+  });
+
+  switch (sort) {
+    case "price_asc": res.sort((a, b) => a.prix - b.prix); break;
+    case "price_desc": res.sort((a, b) => b.prix - a.prix); break;
+    case "title_asc": res.sort((a, b) => (a.titre || "").localeCompare(b.titre || "")); break;
+    case "stock_desc": res.sort((a, b) => (Number(b.stock) || 0) - (Number(a.stock) || 0)); break;
+  }
+
+  filteredProducts = res;
+  renderProducts(filteredProducts);
+}
+
+/* ===========================
+   📥 CHARGEMENT PRODUITS
+   =========================== */
+async function loadProducts() {
+  try {
+    const resp = await fetch(CSV_URL);
+    if (!resp.ok) throw new Error("Échec du chargement CSV");
+    const text = await resp.text();
+
+    const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(Boolean);
+    if (lines.length === 0) {
+      allProducts = [];
+      filteredProducts = [];
+      renderProducts([]);
+      return;
+    }
+
+    const headers = parseCSVLine(lines[0]).map(h => h.trim());
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCSVLine(lines[i]);
+      if (cols.length === 0 || cols.every(c => c === "")) continue;
+      const obj = {};
+      for (let j = 0; j < headers.length; j++) {
+        obj[headers[j]] = cols[j] !== undefined ? cols[j] : "";
+      }
+      rows.push(obj);
+    }
+
+    allProducts = rows.map(r => normalizeProduct(r));
+    filteredProducts = [...allProducts];
+
+    populateFilters();
+    applyFilters();
+    ensureCartIcon();
+    updateCartIconCount();
+  } catch (e) {
+    console.error("loadProducts error:", e);
+  }
+}
+
+/* ===========================
+   🎨 STYLES MODALES
+   =========================== */
+function ensureModalStyles() {
+  if (document.getElementById("modal-styles")) return;
+
+  const style = document.createElement("style");
+  style.id = "modal-styles";
+  style.textContent = `
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10000; animation: fadeIn 0.3s; padding: 20px;
+    }
+
+    .modal-content {
+      background: white; border-radius: 16px;
+      width: 100%; max-width: 1100px; max-height: 90vh;
+      overflow-y: auto; position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      padding: 30px;
+    }
+
+    .modal-close {
+      position: absolute; top: 20px; right: 20px;
+      background: #ff4444; color: white; border: none;
+      border-radius: 50%; width: 40px; height: 40px;
+      font-size: 22px; cursor: pointer; z-index: 10;
+      transition: all 0.2s; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .modal-close:hover {
+      transform: rotate(90deg) scale(1.1);
+      background: #cc0000;
+    }
+
+    .modal-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .modal-grid { grid-template-columns: 1fr; }
+      .modal-content { padding: 20px; }
+    }
+
+    .modal-left {
+      display: flex; flex-direction: column; gap: 15px;
+    }
+
+    .image-view {
+      background: #f8f9fa; border-radius: 12px; padding: 20px;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 350px; border: 2px solid #e9ecef;
+    }
+
+    .modal-main-img {
+      max-width: 100%; max-height: 550px;
+      object-fit: contain; border-radius: 8px; cursor: zoom-in;
+    }
+
+    .modal-thumbs {
+      display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+    }
+
+    .thumb-img {
+      width: 80px; height: 80px; object-fit: cover;
+      border-radius: 8px; cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.2s; opacity: 0.7;
+    }
+
+    .thumb-img:hover {
+      border-color: #ff6b6b; transform: scale(1.08); opacity: 1;
+    }
+
+    .thumb-img.active {
+      border-color: #ff6b6b;
+      box-shadow: 0 0 12px rgba(255, 107, 107, 0.6);
+      opacity: 1;
+    }
+
+    .modal-right {
+      display: flex; flex-direction: column; gap: 18px;
+    }
+
+    .modal-right h2 {
+      margin: 0; font-size: 32px;
+      color: #212529; font-weight: 700;
+    }
+
+    .modal-ref {
+      color: #6c757d; font-size: 15px; margin: -10px 0 0 0;
+    }
+
+    .modal-desc {
+      color: #495057; line-height: 1.7; font-size: 16px;
+      background: #f8f9fa; padding: 15px; border-radius: 8px;
+      border-left: 4px solid #ff6b6b;
+    }
+
+    .modal-price {
+      font-size: 38px; font-weight: bold;
+      color: #ff6b6b; margin: 15px 0;
+    }
+
+    .modal-info {
+      font-size: 16px; color: #495057; margin: 5px 0;
+    }
+
+    .modal-size-selector {
+      display: flex; flex-direction: column; gap: 10px; margin: 10px 0;
+    }
+
+    .modal-size-selector label {
+      font-weight: 600; color: #212529; font-size: 16px;
+    }
+
+    .modal-size-selector select {
+      padding: 12px 16px; border: 2px solid #dee2e6;
+      border-radius: 8px; font-size: 16px;
+      cursor: pointer; background: white;
+      transition: border-color 0.2s;
+    }
+
+    .modal-size-selector select:hover,
+    .modal-size-selector select:focus {
+      border-color: #ff6b6b; outline: none;
+    }
+
+    .add-to-cart-modal-btn, .fabrication-btn, .view-details-btn {
+      padding: 16px 28px; border: none; border-radius: 10px;
+      font-size: 17px; font-weight: 700; cursor: pointer;
+      transition: all 0.3s; display: flex;
+      align-items: center; justify-content: center;
+      gap: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .add-to-cart-modal-btn {
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    .add-to-cart-modal-btn:hover {
+      background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    }
+
+    .fabrication-btn {
+      background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+      color: white; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    }
+
+    .fabrication-btn:hover {
+      background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+    }
+
+    .view-details-btn {
+      background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+      color: white; margin-top: 12px; width: 100%;
+      box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    }
+
+    .view-details-btn:hover {
+      background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
+    }
+
+    .product-card {
+      background: white; border-radius: 12px; padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s; cursor: pointer;
+      display: flex; flex-direction: column;
+    }
+.product-card {
+  background: white; border-radius: 12px; padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s; cursor: pointer;
+  display: flex; flex-direction: column;
+}
+
+/* AJOUTEZ ICI : */
+.product-description {
+  color: #555;
+  font-size: 20px;        /* ← ENCORE PLUS GROS */
+  line-height: 1.6;
+  margin: 12px 0;
+  max-height: 54px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-weight: 600;
+}
+
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .product-img {
+      width: 100%; height: 280px; object-fit: cover;
+      border-radius: 10px; margin-bottom: 15px; background: #f8f9fa;
+    }
+
+    .product-title {
+      font-size: 19px; margin: 12px 0;
+      color: #212529; font-weight: 600; flex-grow: 1;
+    }
+
+    .product-price {
+      font-size: 24px; font-weight: bold;
+      color: #ff6b6b; margin: 12px 0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  `;
+
+  document.head.appendChild(style);
+}
+
+/* ===========================
+   🎯 ÉVÉNEMENTS & INIT
+   =========================== */
+function setupEvents() {
+  const tbtn = document.getElementById("themeToggle");
+  if (tbtn) {
+    tbtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      localStorage.setItem("dark-mode", document.body.classList.contains("dark-mode") ? "1" : "0");
+    });
+  }
+  if (localStorage.getItem("dark-mode") === "1") {
+    document.body.classList.add("dark-mode");
+  }
+}
+
+/* ===========================
+   🚀 INITIALISATION
+   =========================== */
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadProducts();
+  setupEvents();
+  ensureCartPanel();
+  ensureModalStyles();
+  
+  window.addEventListener("storage", (e) => {
+    if (e.key === "cart") {
+      updateCartIconCount();
+      if (document.getElementById("cart-panel")?.classList.contains("open")) {
+        renderCartPanel();
+      }
+    }
+  });
+});
+// ======================================================
+// GESTION DE LA MODAL SUR MESURE
+// ======================================================
+
+// Attendre que le DOM soit chargé
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🔧 Initialisation de la modal sur mesure...");
+    
+    // Fermer la modal avec le bouton ×
+    const closeBtn = document.getElementById('close-custom-modal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            document.getElementById('custom-order-modal').style.display = 'none';
+            console.log("🔴 Modal sur mesure fermée");
+        });
+    } else {
+        console.error("❌ Bouton fermeture modal sur mesure non trouvé");
+    }
+
+    // Fermer la modal en cliquant à l'extérieur
+    const customModal = document.getElementById('custom-order-modal');
+    if (customModal) {
+        customModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+                console.log("🔴 Modal sur mesure fermée (clic extérieur)");
+            }
+        });
+    } else {
+        console.error("❌ Modal sur mesure non trouvée dans le DOM");
+    }
+
+    // Bouton flottant "Sur Mesure"
+    const customOrderBtn = document.getElementById('custom-order-btn');
+    if (customOrderBtn) {
+        customOrderBtn.addEventListener('click', function() {
+            const customModal = document.getElementById('custom-order-modal');
+            if (customModal) {
+                customModal.style.display = 'flex';
+                console.log("🟢 Modal sur mesure ouverte via bouton flottant");
+                
+                // Vider le formulaire pour une nouvelle demande
+                const form = document.getElementById('custom-order-form');
+                if (form) {
+                    form.reset();
+                    console.log("🟢 Formulaire réinitialisé");
+                }
+                
+                // Focus sur le premier champ
+                const nameField = customModal.querySelector('input[name="name"]');
+                if (nameField) {
+                    nameField.focus();
+                    console.log("🟢 Focus sur le champ nom");
+                }
+            } else {
+                console.error("❌ Modal sur mesure non trouvée");
+            }
+        });
+    } else {
+        console.error("❌ Bouton flottant sur mesure non trouvé");
+    }
+
+    // Gestion du formulaire sur mesure
+    const customForm = document.getElementById('custom-order-form');
+    if (customForm) {
+        customForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log("📤 Formulaire sur mesure soumis");
+            
+            alert('Votre demande sur mesure a été envoyée ! Nous vous contacterons rapidement.');
+            document.getElementById('custom-order-modal').style.display = 'none';
+            this.reset();
+        });
+    } else {
+        console.error("❌ Formulaire sur mesure non trouvé");
+    }
+    
+    console.log("✅ Modal sur mesure initialisée avec succès");
+});
+
+// ======================================================
+// FONCTION DE TEST POUR DÉBOGUAGE
+// ======================================================
+
+function testSurMesure() {
+    console.log("🧪 Test manuel de la modal sur mesure...");
+    const customModal = document.getElementById('custom-order-modal');
+    if (customModal) {
+        customModal.style.display = 'flex';
+        console.log("✅ Modal sur mesure ouverte manuellement");
+        return true;
+    } else {
+        console.error("❌ Modal sur mesure non trouvée dans le DOM");
+        return false;
+    }
+}
+
+// Rendre la fonction disponible globalement
+window.testSurMesure = testSurMesure;
+
+console.log("🔧 Module sur mesure chargé");
+// ======================================================
+// GESTION DE LA MODAL SUR MESURE
+// ======================================================
+
+// Attendre que le DOM soit chargé
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🔧 Initialisation de la modal sur mesure...");
+    
+    // Fermer la modal avec le bouton ×
+    const closeBtn = document.getElementById('close-custom-modal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            document.getElementById('custom-order-modal').style.display = 'none';
+            console.log("🔴 Modal sur mesure fermée");
+        });
+    }
+
+    // Fermer la modal en cliquant à l'extérieur
+    const customModal = document.getElementById('custom-order-modal');
+    if (customModal) {
+        customModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+                console.log("🔴 Modal sur mesure fermée (clic extérieur)");
+            }
+        });
+    }
+
+    // Bouton flottant "Sur Mesure"
+    const customOrderBtn = document.getElementById('custom-order-btn');
+    if (customOrderBtn) {
+        customOrderBtn.addEventListener('click', function() {
+            const customModal = document.getElementById('custom-order-modal');
+            if (customModal) {
+                customModal.style.display = 'flex';
+                console.log("🟢 Modal sur mesure ouverte via bouton flottant");
+                
+                // Vider le formulaire
+                const form = document.getElementById('custom-order-form');
+                if (form) form.reset();
+                
+                // Focus sur le premier champ
+                const nameField = customModal.querySelector('input[name="name"]');
+                if (nameField) nameField.focus();
+            }
+        });
+    }
+
+    // Gestion du formulaire sur mesure
+    const customForm = document.getElementById('custom-order-form');
+    if (customForm) {
+        customForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log("📤 Formulaire sur mesure soumis");
+            alert('Votre demande sur mesure a été envoyée ! Nous vous contacterons rapidement.');
+            document.getElementById('custom-order-modal').style.display = 'none';
+            this.reset();
+        });
+    }
+});
+
+// Fonction de test
+function testSurMesure() {
+    console.log("🧪 Test manuel de la modal sur mesure...");
+    const customModal = document.getElementById('custom-order-modal');
+    if (customModal) {
+        customModal.style.display = 'flex';
+        console.log("✅ Modal sur mesure ouverte manuellement");
+        return true;
+    } else {
+        console.error("❌ Modal sur mesure non trouvée");
+        return false;
+    }
+}
+window.testSurMesure = testSurMesure;
+
+console.log("✅ Script sur mesure chargé");
+/* End of file */
+
+
+// ===========================
+// PANNEAU PANIER
+// ===========================
+function renderCartPanel() {
+  const panel = document.getElementById("cart-panel");
+  if (!panel) return;
+
+  const cart = getCart();
+
+  if (cart.length === 0) {
+    panel.innerHTML = "<p>Votre panier est vide</p>";
+    return;
+  }
+
+  panel.innerHTML = `
+    <div class="cart-header">
+      <h3>Votre Panier</h3>
+      <button class="close-cart">×</button>
+    </div>
+    <div class="cart-items">
+      ${cart.map(item => `
+        <div class="cart-item">
+          <span>${item.reference || 'Produit'}</span>
+          <span>${item.prix || 0}€</span>
+        </div>
+      `).join('')}
+    </div>
+    <div class="cart-total">
+      Total: ${cart.reduce((sum, item) => sum + (item.prix || 0), 0)}€
+    </div>
+    <button class="checkout-btn">Commander</button>
+  `;
+
+  // Gestion des événements
+  panel.querySelector('.close-cart')?.addEventListener('click', () => {
+    panel.classList.remove('open');
+  });
+
+  panel.querySelector('.checkout-btn')?.addEventListener('click', () => {
+    checkoutWithStripe(cart);
+  });
+}
+
+
+
+
+// ===========================
+// OUVERTURE MODALE PRODUIT
+// ===========================
+function openProductModal(product) {
+    if (!product) {
+        console.error("❌ Produit non défini");
+        return;
+    }
+    
+    console.log("🔄 Ouverture modale pour:", product.titre);
+    
+    // Supprimer toute modale existante
+    const existingModal = document.querySelector('.product-modal');
+    if (existingModal) existingModal.remove();
+    
+    // Créer la modale
+    const modal = document.createElement("div");
+    modal.className = "product-modal";
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 20px; border-radius: 10px; max-width: 500px; width: 90%; position: relative;">
+            <button class="modal-close" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
+            <img src="${CLOUDINARY_BASE}${product.image}" alt="${product.titre}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 5px;">
+            <h2 style="margin: 15px 0 10px 0;">${product.titre}</h2>
+            <p class="price" style="font-size: 1.5em; color: #d4af37; font-weight: bold; margin: 10px 0;">${product.prix}€</p>
+            <p class="description" style="margin: 15px 0; color: #666;">${product.description || "Aucune description disponible"}</p>
+            <button class="add-to-cart-modal" 
+                    onclick="addToCart('${product.reference}')"
+                    style="background: #d4af37; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%;">
+                🛒 Ajouter au panier
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Fermer la modale
+    modal.querySelector('.modal-close').addEventListener('click', () => {
+        modal.remove();
+    });
+    
+    // Fermer en cliquant à l'extérieur
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// ===========================
+// CONFIGURATION DES CLICS PRODUITS
+// ===========================
+function setupProductClicks() {
+    console.log("🔧 Configuration des clics produits...");
+    
+    const productCards = document.querySelectorAll('.product-card');
+    console.log(`📋 ${productCards.length} cartes produits trouvées`);
+    
+    productCards.forEach((card, index) => {
+        card.style.cursor = 'pointer';
+        
+        card.addEventListener('click', (e) => {
+            // Empêcher les clics sur les boutons d'ouvrir la modale
+            if (e.target.tagName === 'BUTTON') return;
+            
+            const productRef = card.dataset.ref;
+            console.log(`🎯 Clic sur produit: ${productRef}`);
+            
+            const product = allProducts.find(p => p.reference === productRef);
+            if (product) {
+                console.log("✅ Produit trouvé, ouverture modale...");
+                openProductModal(product);
+            } else {
+                console.error("❌ Produit non trouvé avec la référence:", productRef);
+                console.log("Produits disponibles:", allProducts.map(p => p.reference));
+            }
+        });
+    });
+    
+    if (productCards.length === 0) {
+        console.warn("⚠️ Aucune carte produit trouvée - vérifiez le HTML");
+    }
+}
+
+
+
+
+
+// ===========================
+// DEBUG PANIER
+// ===========================
+function debugCart() {
+    const cart = getCart();
+    console.log("🐛 DEBUG PANIER:", cart);
+    
+    // Vérifier que chaque article a les champs requis
+    cart.forEach((item, index) => {
+        console.log(`Article ${index + 1}:`, {
+            reference: item.reference || 'MANQUANTE',
+            titre: item.titre || 'MANQUANT',
+            prix: item.prix || 0,
+            quantite: item.quantite || 1,
+            taille: item.taille || 'NON SPECIFIEE',
+            image: item.image || 'NON SPECIFIEE'
+        });
+    });
+    
+    return cart;
+}
+
+// Remplacer l'ancienne fonction addToCart par une version améliorée
+function addToCart(productRef, taille = "") {
+    console.log("🛒 Ajout au panier:", productRef, "Taille:", taille);
+    
+    const cart = getCart();
+    const product = allProducts.find(p => p.reference === productRef);
+    
+    if (!product) {
+        console.error("❌ Produit non trouvé:", productRef);
+        alert("Produit non trouvé");
+        return;
+    }
+    
+    // Vérifier les champs requis
+    if (!product.prix) {
+        console.warn("⚠️ Produit sans prix:", product);
+        alert("Ce produit n'a pas de prix défini");
+        return;
+    }
+    
+    const existingItem = cart.find(item => 
+        item.reference === productRef && item.taille === taille
+    );
+    
+    if (existingItem) {
+        existingItem.quantite += 1;
+        console.log("📈 Quantité augmentée:", existingItem);
+    } else {
+        const newItem = {
+            reference: productRef,
+            titre: product.titre || "Produit sans nom",
+            prix: product.prix,
+            image: product.image || "",
+            taille: taille,
+            quantite: 1
+        };
+        cart.push(newItem);
+        console.log("🆕 Nouvel article ajouté:", newItem);
+    }
+    
+    localStorage.setItem("cart", JSON.stringify(cart));
+    console.log("💾 Panier sauvegardé");
+    
+    // Mettre à jour l'interface
+    renderCartPanel();
+    updateCartIconCount();
+    debugCart(); // Debug
+}
+
+
+
+
+// ===========================
+// 📌 NOUVELLES FONCTIONNALITÉS AJOUTÉES
+// ===========================
+
+// Frais de livraison
+const FRAIS_LIVRAISON = 5.90;
+
+function displayProductDetails(product) {
+    const tailles = product.tailles ? product.tailles.split(',').map(t => t.trim()) : ['Unique'];
+    const tailleOptions = tailles.map(taille => \<option value="\">\</option>\).join('');
+    
+    return \
+        <div class="product-detail-container">
+            <div class="product-image">
+                <img src="\" alt="\" onclick="hideProductDetails()" style="cursor: pointer;">
+            </div>
+            <div class="product-info">
+                <h2>\</h2>
+                
+                <div class="product-attributes">
+                    <div class="attribute">
+                        <strong>COULEUR:</strong>
+                        <span>\</span>
+                    </div>
+                    <div class="attribute">
+                        <strong>POIDS OR:</strong>
+                        <span>\ g</span>
+                    </div>
+                    <div class="attribute">
+                        <strong>TYPE DE PIERRES:</strong>
+                        <span>\</span>
+                    </div>
+                    <div class="attribute">
+                        <strong>POIDS PIERRE:</strong>
+                        <span>\ ct</span>
+                    </div>
+                    <div class="attribute">
+                        <strong>DESCRIPTION:</strong>
+                        <span>\</span>
+                    </div>
+                </div>
+                
+                <div class="selection-section">
+                    <div class="size-selection">
+                        <label for="taille-select"><strong>TAILLES DISPONIBLES:</strong></label>
+                        <select id="taille-select" class="size-select">
+                            \
+                        </select>
+                    </div>
+                    
+                    <div class="quantity-selection">
+                        <label for="quantite"><strong>QUANTITÉ PAR TAILLE:</strong></label>
+                        <input type="number" id="quantite" min="1" value="1" class="quantity-input">
+                    </div>
+                </div>
+                
+                <button class="add-to-cart-btn" onclick="addToCartDetailed('\')">
+                    AJOUTER AU PANIER - \€
+                </button>
+            </div>
+        </div>
+    \;
+}
+
+function addToCartDetailed(productId) {
+    const taille = document.getElementById('taille-select').value;
+    const quantite = parseInt(document.getElementById('quantite').value);
+    
+    if (addToCart(productId, quantite, taille)) {
+        alert('✅ Produit ajouté au panier !');
+        updateCartCount();
+        hideProductDetails();
+    }
+}
+
+function showProductDetails(productId) {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+        console.log('Affichage détaillé pour:', product);
+        
+        // Masquer le catalogue
+        const catalogue = document.getElementById('products-grid');
+        if (catalogue) {
+            catalogue.style.display = 'none';
+        }
+        
+        // Afficher les détails
+        const detailsContainer = document.getElementById('product-details');
+        if (detailsContainer) {
+            detailsContainer.style.display = 'block';
+            detailsContainer.innerHTML = \
+                <button onclick="hideProductDetails()" class="back-button">← RETOUR AU CATALOGUE</button>
+                \
+            \;
+        }
+        
+        // Scroll vers le haut
+        window.scrollTo(0, 0);
+    }
+}
+
+function hideProductDetails() {
+    const detailsContainer = document.getElementById('product-details');
+    if (detailsContainer) {
+        detailsContainer.style.display = 'none';
+    }
+    
+    const catalogue = document.getElementById('products-grid');
+    if (catalogue) {
+        catalogue.style.display = 'grid';
+    }
+}
+
+function updateCartDisplay() {
+    const cart = getCart();
+    if (cart.length === 0) {
+        return '<p class="empty-cart">Votre panier est vide</p>';
+    }
+    
+    const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.prix) * item.quantite), 0);
+    const total = subtotal + FRAIS_LIVRAISON;
+    
+    const cartItems = cart.map((item, index) => \
+        <div class="cart-item">
+            <div class="item-info">
+                <strong>\</strong>
+                <div class="item-details">
+                    Taille: \ | Quantité: \
+                </div>
+            </div>
+            <div class="item-price">
+                \€ x \
+                <strong>\€</strong>
+                <button onclick="removeFromCart(\)" class="remove-item-btn">✕</button>
+            </div>
+        </div>
+    \).join('');
+    
+    return \
+        <div class="cart-header">
+            <h3>MON PANIER (\)</h3>
+            <button onclick="clearCart()" class="clear-cart-btn">🗑️ VIDER LE PANIER</button>
+        </div>
+        
+        <div class="cart-items">
+            \
+        </div>
+        
+        <div class="cart-totals">
+            <div class="total-line">
+                <span>Sous-total:</span>
+                <span>\€</span>
+            </div>
+            <div class="total-line">
+                <span>Frais de livraison:</span>
+                <span>\€</span>
+            </div>
+            <div class="total-final">
+                <span>TOTAL:</span>
+                <span>\€</span>
+            </div>
+        </div>
+        
+        <div class="cart-actions">
+            <div class="email-section">
+                <label for="customer-email"><strong>EMAIL POUR CONFIRMATION:</strong></label>
+                <input type="email" id="customer-email" placeholder="votre@email.com" class="email-input">
+            </div>
+            
+            <div class="payment-options">
+                <button onclick="proceedToStripePayment()" class="stripe-payment-btn">
+                    💳 PAYER EN LIGNE (Stripe)
+                </button>
+                <button onclick="sendEmailOrder()" class="email-order-btn">
+                    📧 COMMANDER PAR EMAIL
+                </button>
+            </div>
+        </div>
+    \;
+}
+
+function updatePanierPage() {
+    const cartContent = document.getElementById('cart-content');
+    if (cartContent) {
+        cartContent.innerHTML = updateCartDisplay();
+    }
+}
+
+function removeFromCart(index) {
+    const cart = getCart();
+    if (index >= 0 && index < cart.length) {
+        cart.splice(index, 1);
+        localStorage.setItem('bijouxCart', JSON.stringify(cart));
+        updatePanierPage();
+        updateCartCount();
+    }
+}
+
+async function sendEmailOrder() {
+    const email = document.getElementById('customer-email').value;
+    const cart = getCart();
+    
+    if (!email) {
+        alert('❌ Veuillez entrer votre adresse email');
+        return;
+    }
+    
+    if (cart.length === 0) {
+        alert('❌ Votre panier est vide');
+        return;
+    }
+    
+    try {
+        const success = await sendOrderConfirmation(cart, email);
+        if (success) {
+            alert('✅ Commande envoyée par email !');
+            clearCart();
+        } else {
+            alert('❌ Erreur lors de l\\'envoi de la commande');
+        }
+    } catch (error) {
+        alert('❌ Erreur: ' + error.message);
+    }
+}
+
+async function proceedToStripePayment() {
+    const email = document.getElementById('customer-email').value;
+    const cart = getCart();
+    
+    if (!email) {
+        alert('❌ Veuillez entrer votre adresse email');
+        return;
+    }
+    
+    if (cart.length === 0) {
+        alert('❌ Votre panier est vide');
+        return;
+    }
+    
+    window.location.href = \checkout.html?email=\\;
+}
+
+// Initialisation pour le panier
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.location.pathname.includes('panier.html') || window.location.pathname.endsWith('panier.html')) {
+            setTimeout(updatePanierPage, 100);
+        }
+    });
+}

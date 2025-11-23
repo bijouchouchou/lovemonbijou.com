@@ -1,0 +1,52 @@
+﻿// ===========================
+// INITIALISATION EmailJS
+// ===========================
+
+function initEmailJS() {
+    // Remplacez par votre clé publique EmailJS
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init("m#Ahx/458aFJ$7Y!");
+        console.log('EmailJS initialized successfully');
+        
+        // Configuration pour l'envoi de confirmation de commande
+        const orderForm = document.getElementById('order-form');
+        if (orderForm) {
+            orderForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                emailjs.sendForm('template_8xmiwsj ', this)
+                    .then(function() {
+                        console.log('Order confirmation email sent!');
+                        // Redirection ou message de succès
+                    }, function(error) {
+                        console.error('Failed to send email:', error);
+                    });
+            });
+        }
+    } else {
+        console.error('EmailJS not loaded');
+    }
+}
+
+// ===========================
+// INITIALISATION APPLICATION
+// ===========================
+
+document.addEventListener("DOMContentLoaded", async () => {
+  console.log("🚀 Initialisation de l'application...");
+  
+  // Initialiser EmailJS
+  initEmailJS();
+  
+  // Vérifier retour Stripe
+  // handleStripeSuccess(); // TEMPORAIREMENT DÉSACTIVÉ
+  
+  // Charger les produits
+  await loadProducts();
+  
+  // LE RESTE DE VOTRE CODE VIENT ICI...
+  
+}); // FIN DU DOMContentLoaded
+
+// AUTRES FONCTIONS GLOBALES...
+

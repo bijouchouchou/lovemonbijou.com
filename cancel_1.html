@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Paiement annulé ❌ | Love Mon Bijou</title>
+  <link rel="stylesheet" href="assets/style.css" />
+
+  <style>
+    body {
+      text-align: center;
+      padding: 80px 20px;
+      background: #fffaf3;
+      color: #5a4634;
+      font-family: "Poppins", sans-serif;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    h1 {
+      font-size: 2.4em;
+      color: #b8964c;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin-top: 1em;
+      font-size: 1.15em;
+    }
+
+    a.button {
+      display: inline-block;
+      margin-top: 2em;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #d4af37, #b8860b);
+      color: white;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: 0.3s;
+      box-shadow: 0 4px 12px rgba(212,175,55,0.35);
+    }
+
+    a.button:hover {
+      transform: translateY(-3px);
+      background: linear-gradient(135deg, #b8860b, #8b6c00);
+      box-shadow: 0 6px 18px rgba(212,175,55,0.45);
+    }
+
+    .auto-redirect {
+      margin-top: 25px;
+      font-size: 0.95em;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Paiement annulé ❌</h1>
+
+  <p>Votre commande n’a pas été finalisée.</p>
+  <p>Vous pouvez réessayer à tout moment 💫</p>
+
+  <a href="index.html" class="button">← Retour à la boutique</a>
+
+  <p class="auto-redirect">Redirection automatique dans quelques secondes…</p>
+
+  <script>
+    // Récupération session_id éventuel (utile pour logs si tu veux)
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    if (sessionId) {
+      console.log("Stripe session annulée :", sessionId);
+      // Tu peux envoyer une requête backend si tu veux enregistrer l’annulation
+    }
+
+    // Redirection automatique
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 6000);
+  </script>
+
+</body>
+</html>

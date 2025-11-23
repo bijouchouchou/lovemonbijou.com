@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nous contacter – Love Mon Bijou</title>
+
+  <link rel="stylesheet" href="assets/style.css" />
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script>
+    emailjs.init("QvP4ltdzywwg7IolM");
+  </script>
+</head>
+
+<body>
+
+<header class="header">
+  <h1 class="logo">Love Mon Bijou</h1>
+  <nav>
+    <a href="index.html">← Retour à la boutique</a>
+  </nav>
+</header>
+
+<main>
+
+<section class="contact-section">
+
+    <h2>Nous contacter</h2>
+
+    <p>Une question ? Un projet sur mesure ? Nous sommes à votre écoute.</p>
+    <p><strong>Email :</strong> contact@lovemonbijou.com</p>
+    <p><strong>Téléphone :</strong> 06 00 00 00 00</p>
+    <p><strong>Horaires :</strong> Lundi – Samedi, 9h – 19h</p>
+
+    <form class="contact-form" id="contactForm">
+
+        <div class="field">
+            <label for="name">Nom</label>
+            <input id="name" type="text" placeholder="Votre nom" required>
+        </div>
+
+        <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="Votre email" required>
+        </div>
+
+        <div class="field field-full">
+            <label for="message">Message</label>
+            <textarea id="message" placeholder="Votre message" required></textarea>
+        </div>
+
+        <button type="submit" class="contact-btn">Envoyer</button>
+    </form>
+
+</section>
+
+</main>
+
+<footer class="footer">
+    <div class="footer-links">
+        <a href="index.html">Boutique</a>
+        <a href="ethique.html">Notre éthique</a>
+        <a href="cgv.html">Conditions générales</a>
+        <a href="guide-tailles.html">Guide des tailles</a>
+    </div>
+    <p>© 2025 Love Mon Bijou – Artisan bijoutier</p>
+</footer>
+
+<script src="assets/contact.js"></script>
+
+</body>
+</html>

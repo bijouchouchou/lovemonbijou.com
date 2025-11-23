@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catalogue - Love Mon Bijou</title>
+<style>
+    body { 
+        font-family: Arial, sans-serif; 
+        margin: 20px;
+        background-color: #f9f9f9;
+    }
+    h1 { 
+        color: #333;
+        text-align: center;
+    }
+    .filters {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    select { 
+        margin: 10px 5px; 
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    table { 
+        border-collapse: collapse; 
+        width: 100%; 
+        margin-top: 15px;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    th, td { 
+        border: 1px solid #ddd; 
+        padding: 12px; 
+        text-align: left; 
+    }
+    th {
+        background-color: #4CAF50;
+        color: white;
+    }
+    tr:hover {
+        background-color: #f5f5f5;
+    }
+    button { 
+        padding: 8px 15px; 
+        margin: 5px; 
+        cursor: pointer;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+    }
+    button:hover {
+        background-color: #45a049;
+    }
+    #cart { 
+        margin-top: 20px; 
+        border: 1px solid #ddd; 
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    #cartList {
+        list-style: none;
+        padding: 0;
+    }
+    #cartList li {
+        padding: 8px;
+        border-bottom: 1px solid #eee;
+    }
+    #checkoutBtn {
+        background-color: #ff9800;
+        font-size: 16px;
+        padding: 12px 24px;
+    }
+    #checkoutBtn:hover {
+        background-color: #e68900;
+    }
+    .loading {
+        text-align: center;
+        padding: 40px;
+        font-size: 18px;
+        color: #666;
+    }
+</style>
+</head>
+<body>
+
+<h1>💎 Catalogue Love Mon Bijou</h1>
+
+<div class="filters">
+    <label for="typeSelect">Type de bijou:</label>
+    <select id="typeSelect">
+        <option value="">-- Tous les types --</option>
+    </select>
+
+    <label for="titleSelect">Titre:</label>
+    <select id="titleSelect">
+        <option value="">-- Tous les titres --</option>
+    </select>
+
+    <label for="priceSort">Trier par prix:</label>
+    <select id="priceSort">
+        <option value="">-- Aucun tri --</option>
+        <option value="asc">Prix croissant</option>
+        <option value="desc">Prix décroissant</option>
+    </select>
+</div>
+
+<div id="loading" class="loading">Chargement du catalogue...</div>
+
+<table id="productTable" style="display:none;">
+   <thead>
+    <tr>
+        <th>Image</th>
+        <th>Type</th>
+        <th>Titre</th>
+        <th>Couleur</th>
+        <th>Poids</th>
+        <th>Pierres</th>
+        <th>Tailles</th>
+        <th>Prix</th>
+        <th>Action</th>
+    </tr>
+</thead>
+    <tbody></tbody>
+</table>
+
+<div id="cart">
+    <h2>🛒 Panier</h2>
+    <ul id="cartList"></ul>
+    <p><strong>Total: €<span id="cartTotal">0.00</span></strong></p>
+    <button id="checkoutBtn">Valider la commande</button>
+</div>
+
+<script>
+let products = [];
+let cart = [];
+window.products = products;
+window.cart = cart;
+
+// Charger les produits depuis Netlify Function
+async function loadProducts() {
+    try {
+        console.log('🔄 Chargement des produits...');
+        
+        const res = await fetch('/.netlify/functions/get-products');
+        const data = await res.json();
+        
+        console.log('📦 Données reçues:', data);
+        
+        // Extraire le tableau de produits
+        if (data.success && Array.isArray(data.products)) {
+            products = data.products;
+        } else if (Array.isArray(data)) {
+            products = data;
+        } else {
+            console.error('❌ Format incorrect');
+            products = [];
+        }
+        
+        window.products = products;
+        console.log('✅ Produits chargés:', products.length);
+        if (products.length > 0) {
+            console.log('📦 Premier produit:', products[0]);
+        }
+        
+        populateTypeDropdown();
+        populateTable();
+        
+    } catch (err) {
+        console.error('❌ Erreur:', err);
+    }
+}
+function populateTypeDropdown() {
+    const typeSelect = document.getElementById('typeSelect');
+    const types = [...new Set(products.map(p => p.type).filter(Boolean))];
+    
+    types.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        typeSelect.appendChild(option);
+    });
+}
+
+function populateTitleDropdown(selectedType) {
+    const titleSelect = document.getElementById('titleSelect');
+    titleSelect.innerHTML = '<option value="">-- Tous les titres --</option>';
+    
+    const filtered = selectedType 
+        ? products.filter(p => p.type === selectedType) 
+        : products;
+    
+    const titles = [...new Set(filtered.map(p => p.titre).filter(Boolean))];
+    
+    titles.forEach(title => {
+        const option = document.createElement('option');
+        option.value = title;
+        option.textContent = title;
+        titleSelect.appendChild(option);
+    });
+}
+
+function formatSizes(product) {
+    if (!product.sizes || product.sizes.length === 0) {
+        return '-';
+    }
+    
+    if (product.quantityPerSize && product.quantityPerSize.length > 0) {
+        return product.sizes.map((size, i) => 
+            `${size}: ${product.quantityPerSize[i] || '?'}`
+        ).join('<br>');
+    }
+    
+    return product.sizes.join(', ');
+}
+
+function formatPierres(pierres) {
+    if (!pierres || pierres.length === 0) return '-';
+    return Array.isArray(pierres) ? pierres.join(', ') : pierres;
+}
+
+function populateTable() {
+    const tbody = document.querySelector('table tbody');
+    if (!tbody) {
+        console.error('tbody introuvable');
+        return;
+    }
+    
+    tbody.innerHTML = '';
+
+    const selectedType = document.getElementById('typeSelect')?.value || '';
+    const selectedTitle = document.getElementById('titleSelect')?.value || '';
+    const priceSort = document.getElementById('priceSort')?.value || '';
+
+    let filtered = products;
+    
+    if (selectedType) {
+        filtered = filtered.filter(p => p.type === selectedType);
+    }
+    
+    if (selectedTitle) {
+        filtered = filtered.filter(p => p.titre === selectedTitle);
+    }
+
+    if (priceSort === 'asc') {
+        filtered.sort((a, b) => a.price - b.price);
+    }
+    if (priceSort === 'desc') {
+        filtered.sort((a, b) => b.price - a.price);
+    }
+
+    console.log('📊 Affichage de', filtered.length, 'produits');
+
+    // BOUCLE CORRECTE
+    filtered.forEach((p, index) => {
+        const tr = document.createElement('tr');
+        
+        tr.innerHTML = `
+            <td>
+                ${p.picture
+                    ? `<img 
+                        src="${p.picture}" 
+                        alt="${p.titre || 'Bijou'}" 
+                        style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #ddd;" 
+                        onerror="this.src='https://via.placeholder.com/80/cccccc/666666?text=Image'"
+                    >`
+                    : `<div style="width:80px;height:80px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;border-radius:8px;color:white;font-size:24px;">💎</div>`
+                }
+            </td>
+            <td>${p.type || '-'}</td>
+            <td><strong>${p.titre || 'Sans titre'}</strong><br><small>${p.reference || ''}</small></td>
+            <td>${p.couleur || '-'}</td>
+            <td>${p.poids || '-'}</td>
+            <td>${Array.isArray(p.pierres) ? p.pierres.join(', ') : (p.pierres || '-')}</td>
+            <td>${Array.isArray(p.sizes) ? p.sizes.join(', ') : (p.sizes || '-')}</td>
+            <td><strong style="color:#4CAF50;font-size:18px;">${p.price ? p.price.toFixed(2) : '0.00'} €</strong></td>
+            <td><button data-index="${index}">Ajouter au panier</button></td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+
+    // Événements boutons
+    document.querySelectorAll('table button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const idx = e.target.getAttribute('data-index');
+            addToCart(filtered[idx]);
+        });
+    });
+}
+    filtered.forEach((p, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+    const rows = filtered.map((p, index) => `
+  <tr>
+    <td>
+      ${p.picture
+        ? `<img 
+              src="${p.picture}" 
+              alt="${p.titre || 'Bijou'}" 
+              style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #ddd;" 
+              onerror="this.src='https://via.placeholder.com/80/cccccc/666666?text=Image'"
+            >`
+        : `<div style="width:80px;height:80px;background:linear-gradient(135deg,#667eea,#764ba2);
+                      display:flex;align-items:center;justify-content:center;
+                      border-radius:8px;color:white;font-size:24px;">💎</div>`
+      }
+    </td>
+    <td>${p.type || '-'}</td>
+    <td><strong>${p.titre || 'Sans titre'}</strong><br><small>${p.reference || ''}</small></td>
+    <td>${p.couleur || '-'}</td>
+    <td>${p.poids || '-'} g</td>
+    <td>${Array.isArray(p.pierres) ? p.pierres.join(', ') : (p.pierres || '-')}</td>
+    <td>${Array.isArray(p.sizes) ? p.sizes.join(', ') : (p.sizes || '-')}</td>
+    <td><strong style="color:#4CAF50;font-size:18px;">${p.price ? p.price.toFixed(2) : '0.00'} €</strong></td>
+    <td><button data-index="${index}">Ajouter au panier</button></td>
+  </tr>
+`).join('');
+
+document.querySelector('#productTable tbody').innerHTML = rows;
+
+// Ajouter les événements sur les boutons
+document.querySelectorAll('#productTable button').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const idx = e.target.getAttribute('data-index');
+    addToCart(filtered[idx]);
+  });
+
+
+function addToCart(product) {
+    cart.push(product);
+    updateCart();
+    alert(`✅ "${product.titre}" ajouté au panier !`);
+}
+
+function updateCart() {
+    const cartList = document.getElementById('cartList');
+    cartList.innerHTML = '';
+    let total = 0;
+    
+    cart.forEach((p, index) => {
+        const li = document.createElement('li');
+        // ✅ CORRIGÉ : p.price au lieu de p.priceSort
+        li.innerHTML = `
+            ${p.titre} - €${p.price.toFixed(2)}
+            <button onclick="removeFromCart(${index})" style="background:red;padding:3px 8px;font-size:12px;">✕</button>
+        `;
+        cartList.appendChild(li);
+        total += p.price;
+    });
+    
+    document.getElementById('cartTotal').textContent = total.toFixed(2);
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCart();
+}
+
+// Envoyer la commande
+document.getElementById('checkoutBtn').addEventListener('click', async () => {
+    if (cart.length === 0) {
+        alert('⚠️ Votre panier est vide.');
+        return;
+    }
+
+    if (!confirm(`Confirmer la commande de ${cart.length} article(s) ?`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch('/.netlify/functions/send-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart })
+        });
+
+        const result = await res.json();
+        
+        if (result.success) {
+            alert('✅ ' + (result.message || 'Commande envoyée avec succès !'));
+            cart = [];
+            updateCart();
+        } else {
+            alert('❌ ' + (result.error || 'Erreur lors de l\'envoi'));
+        }
+        
+    } catch (err) {
+        console.error(err);
+        alert('❌ Erreur lors de l\'envoi de la commande.');
+    }
+});
+
+// Événements des filtres
+document.getElementById('typeSelect').addEventListener('change', e => {
+    populateTitleDropdown(e.target.value);
+    populateTable();
+});
+
+document.getElementById('titleSelect').addEventListener('change', populateTable);
+document.getElementById('priceSort').addEventListener('change', populateTable);
+
+// Charger au démarrage
+loadProducts();
+</script>
+
+</body>
+</html>

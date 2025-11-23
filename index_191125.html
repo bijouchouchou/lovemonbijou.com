@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Love Mon Bijou — Boutique</title>
+
+  <link rel="stylesheet" href="assets/style.css" />
+
+  <!-- Petites sécurités UI si style.css ne charge pas -->
+  <style>
+    body {
+      background: #fffaf3;
+      color: #5a4634;
+      font-family: "Poppins", sans-serif;
+      margin: 0; padding: 0;
+    }
+    header {
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    header h1 {
+      font-size: 1.2rem;
+      margin: 0;
+      color: #b8964c;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+    .filters {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      align-items: center;
+    }
+    .filters select, .filters input[type=text] {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #e6d9bf;
+      background: #fffaf3;
+    }
+    .grid.products-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 1000px) {
+      .grid.products-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .grid.products-grid { grid-template-columns: repeat(1, 1fr); }
+      .filters { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <h1>💎 Love Mon Bijou</h1>
+    <nav><a href="index.html">Boutique</a></nav>
+  </div>
+
+  <div style="display:flex;gap:8px;">
+    <a class="btn" href="fabrication.html">Commande sur mesure</a>
+    <a class="btn" href="confirmation.html">Commandes</a>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- FILTRES -->
+  <section class="filters" aria-label="Filtres produits">
+    <select id="eventFilter">
+      <option value="">Tous les événements</option>
+    </select>
+  </section>
+
+  <!-- GRILLE PRODUITS -->
+  <section id="product-list" class="grid products-grid" aria-live="polite"></section>
+
+  <!-- PANIER -->
+  <aside id="cart-panel"
+         style="position:fixed; right:18px; top:18px; width:320px; max-width:90%;
+                display:none; background:#fff; border-radius:12px;
+                box-shadow:0 16px 60px rgba(0,0,0,0.20); z-index:1500; padding:12px;">
+    <button class="close-cart" style="float:right;">×</button>
+    <h3>Mon Panier <span class="cart-count" style="display:none;">0</span></h3>
+
+    <div class="cart-items" style="max-height:360px; overflow:auto;"></div>
+
+    <div class="cart-subtotal">Sous-total : 0.00 €</div>
+
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button class="cart-checkout-btn btn btn-primary">Payer</button>
+      <button class="cart-clear btn">Vider</button>
+    </div>
+  </aside>
+
+  <!-- ICON PANIER FLOTTANT -->
+  <button class="cart-icon" id="cartIcon" aria-label="Ouvrir le panier">
+    🛒
+    <span class="cart-count" id="cartCount" style="display:none;">0</span>
+  </button>
+
+</main>
+
+<!-- SCRIPT PRINCIPAL -->
+<script src="assets/script.js"></script>
+
+<script>
+  // Ouverture / fermeture panier
+  (function(){
+    const cartIcon = document.getElementById('cartIcon');
+    const cartPanel = document.getElementById('cart-panel');
+
+    if(cartIcon && cartPanel){
+      cartIcon.addEventListener('click', () => {
+        cartPanel.style.display = cartPanel.style.display === 'block' ? 'none' : 'block';
+      });
+      cartPanel.querySelector('.close-cart')
+               ?.addEventListener('click', () => cartPanel.style.display = 'none');
+    }
+  })();
+</script>
+
+</body>
+</html>

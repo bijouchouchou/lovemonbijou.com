@@ -1,37 +1,28 @@
-import Stripe from "stripe";
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-export async function handler(event) {
+// netlify/functions/create-checkout-session.js
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+exports.handler = async (event) => {
   try {
-    const { cart, shippingFee } = JSON.parse(event.body || "{}");
-    const line_items = cart.map(i => ({
+    const body = JSON.parse(event.body || '{}');
+    const cart = body.cart || { items: [] };
+    // Build line_items from cart.items
+    const line_items = cart.items.map(i => ({
       price_data: {
-        currency: "eur",
-        product_data: { name: `${i.name} (${i.size})` },
-        unit_amount: Math.round(i.price * 100),
+        currency: 'eur',
+        product_data: { name: i.title },
+        unit_amount: Math.round((i.price || 0) * 100)
       },
-      quantity: i.quantity
+      quantity: i.qty || 1
     }));
-    if (shippingFee > 0) {
-      line_items.push({
-        price_data: {
-          currency: "eur",
-          product_data: { name: "Frais de livraison" },
-          unit_amount: Math.round(shippingFee * 100),
-        },
-        quantity: 1
-      });
-    }
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
+      payment_method_types: ['card'],
+      mode: 'payment',
       line_items,
-      success_url: `${process.env.URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.URL}/cancel.html`,
-      metadata: { order_data: JSON.stringify(cart) }
+      success_url: body.successUrl || `${process.env.URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: body.cancelUrl || `${process.env.URL}/cancel.html`
     });
-    return { statusCode: 200, body: JSON.stringify({ id: session.id }) };
+    return { statusCode: 200, body: JSON.stringify({ sessionId: session.id, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY }) };
   } catch (err) {
+    console.error(err);
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
-}
+};

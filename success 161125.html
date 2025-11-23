@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commande Confirmée - Nose Bijoux</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="container">
+        <h1>💎 Nose Bijoux</h1>
+        <nav><a href="index.html">Retour à la boutique</a></nav>
+    </div>
+</header>
+
+<main class="main">
+    <div class="container">
+        <div class="success-container">
+            <div class="success-icon">✅</div>
+            <h1>Commande Confirmée !</h1>
+            
+            <div id="commandeDetails"></div>
+
+            <div class="success-message">
+                <p>Un email de confirmation vous a été envoyé.</p>
+            </div>
+
+            <div class="success-actions">
+                <a href="index.html" class="btn btn-primary">Retour à la boutique</a>
+                <button onclick="window.print()" class="btn btn-outline">Imprimer</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+async function fetchStripe(sessionId) {
+    const r = await fetch(`/.netlify/functions/retrieve-session?session_id=${sessionId}`);
+    return r.json();
+}
+
+async function fetchPayPal(orderId) {
+    return { mode: "paypal", orderId };
+}
+
+async function fetchAlma(paymentId) {
+    return { mode: "alma", paymentId };
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    const stripeId = params.get("session_id");
+    const paypalId = params.get("paypal_order_id");
+    const almaId = params.get("alma_payment_id");
+
+    let details = {};
+    
+    if (stripeId) details = await fetchStripe(stripeId);
+    else if (paypalId) details = await fetchPayPal(paypalId);
+    else if (almaId) details = await fetchAlma(almaId);
+
+    document.getElementById("commandeDetails").innerHTML = `
+        <p><strong>Mode de paiement :</strong> ${details.mode}</p>
+        <p><strong>Numéro de commande :</strong> ${details.id || details.orderId || details.paymentId}</p>
+        <p><strong>Date :</strong> ${new Date().toLocaleDateString("fr-FR")}</p>
+    `;
+
+    // vider panier local
+    if (window.localStorage) localStorage.removeItem("LMJ_CART");
+});
+</script>
+
+</body>
+</html>

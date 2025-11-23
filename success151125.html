@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commande Confirmée - Nose Bijoux</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>💎 Nose Bijoux</h1>
+                </div>
+                <nav class="nav">
+                    <a href="index.html">Retour à la boutique</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="success-container">
+                <div class="success-icon">✅</div>
+                <h1>Commande Confirmée !</h1>
+                
+                <div id="commandeDetails" class="commande-details">
+                    <!-- Détails chargés dynamiquement -->
+                </div>
+                
+                <div class="success-message">
+                    <p>Un email de confirmation vous a été envoyé avec tous les détails de votre commande.</p>
+                    <p><strong>Merci pour votre confiance !</strong></p>
+                </div>
+                
+                <div class="success-actions">
+                    <a href="index.html" class="btn btn-primary">Retour à la boutique</a>
+                    <button onclick="window.print()" class="btn btn-outline">Imprimer cette page</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Afficher les détails de la commande
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const commandeNumero = urlParams.get('commande');
+            
+            if (commandeNumero) {
+                document.getElementById('commandeDetails').innerHTML = `
+                    <p><strong>Numéro de commande:</strong> ${commandeNumero}</p>
+                    <p><strong>Date:</strong> ${new Date().toLocaleDateString('fr-FR')}</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+﻿
+// ===========================
+// FONCTIONS MANQUANTES (versions basiques)
+// ===========================
+
+function handleStripeSuccess() {
+    // Version basique qui ne casse rien
+    console.log('🔍 Vérification Stripe...');
+}
+
+async function loadProducts() {
+    // Version basique qui laisse votre code existant travailler
+    console.log('📦 Début du chargement des produits...');
+    
+    // Votre code Google Sheets/Cloudinary existant va s'exécuter après
+    // Cette fonction ne fait que logger et ne remplace pas votre code
+}
+
+
+// ===========================
+// INITIALISATION EmailJS
+// ===========================
+
+function initEmailJS() {
+    // Remplacez par votre clé publique EmailJS
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init("m#Ahx/458aFJ$7Y!");
+        console.log('EmailJS initialized successfully');
+        
+        // Configuration pour l'envoi de confirmation de commande
+        const orderForm = document.getElementById('order-form');
+        if (orderForm) {
+            orderForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                emailjs.sendForm('template_8xmiwsj ', this)
+                    .then(function() {
+                        console.log('Order confirmation email sent!');
+                        // Redirection ou message de succès
+                    }, function(error) {
+                        console.error('Failed to send email:', error);
+                    });
+            });
+        }
+    } else {
+        console.error('EmailJS not loaded');
+    }
+}
+
+// ===========================
+// INITIALISATION APPLICATION
+// ===========================
+
+document.addEventListener("DOMContentLoaded", async () => {
+  console.log("🚀 Initialisation de l'application...");
+  
+  // Initialiser EmailJS
+  initEmailJS();
+  
+  // Vérifier retour Stripe
+  // handleStripeSuccess(); // TEMPORAIREMENT DÉSACTIVÉ
+  
+  // Charger les produits
+  await loadProducts();
+  
+  // LE RESTE DE VOTRE CODE VIENT ICI...
+  
+}); // FIN DU DOMContentLoaded
+
+// AUTRES FONCTIONS GLOBALES...
+
+

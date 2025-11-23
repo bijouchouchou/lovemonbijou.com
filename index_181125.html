@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Love Mon Bijou — Boutique</title>
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    /* petites règles pour s'assurer que la page soit lisible si tu n'as pas le style complet */
+    body { background: #fffaf3; color: #5a4634; font-family: "Poppins",sans-serif; margin:0; padding:0; }
+    header{ padding:18px 24px; display:flex; justify-content:space-between; align-items:center; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.04);}
+    header h1{ font-size:1.2rem; margin:0; color:#b8964c;}
+    .container{ max-width:1200px; margin:0 auto; padding:18px;}
+    .filters{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px; align-items:center;}
+    .filters select, .filters input[type=text]{ padding:8px 10px; border-radius:8px; border:1px solid #e6d9bf; background:#fffaf3;}
+    .grid.products-grid{ display:grid; grid-template-columns: repeat(5, 1fr); gap:14px; }
+    .product-card{ background:white; border-radius:10px; padding:12px; box-shadow:0 8px 20px rgba(0,0,0,0.04); display:flex; flex-direction:column; }
+    .product-image{ width:100%; height:140px; object-fit:cover; border-radius:8px; margin-bottom:8px; }
+    .product-actions{ display:flex; gap:8px; margin-top:auto; }
+    .btn{ padding:8px 12px; border-radius:8px; cursor:pointer; text-decoration:none;}
+    .btn-primary{ background: linear-gradient(135deg,#d4af37,#b8860b); color:#fff; border:none;}
+    .cart-icon{ position:fixed; right:18px; bottom:18px; z-index:1200; background:#b8964c; color:#fff; padding:12px; border-radius:999px; box-shadow:0 8px 24px rgba(0,0,0,0.15); display:flex; align-items:center; gap:8px; }
+    .cart-count{ background:#fff; color:#b8964c; padding:2px 6px; border-radius:999px; font-weight:700; display:flex; align-items:center; justify-content:center; min-width:22px;}
+    /* modal basic */
+    .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; padding:20px; z-index:2000; }
+    .modal-content{ background:white; border-radius:12px; max-width:980px; width:100%; padding:18px; box-shadow:0 16px 48px rgba(0,0,0,0.35);}
+    @media (max-width:1000px){ .grid.products-grid{ grid-template-columns: repeat(2,1fr); } }
+    @media (max-width:600px){ .grid.products-grid{ grid-template-columns: repeat(1,1fr); } .filters{flex-direction:column; align-items:stretch} }
+  </style>
+</head>
+<body>
+  <header>
+  <div class="filter-container">
+    <select id="eventFilter">
+        <option value="">Tous les événements</option>
+    </select>
+</div>
+
+    <div class="container" style="display:flex;gap:12px;align-items:center;">
+      <div style="display:flex;gap:12px;align-items:center;">
+        <h1>💎 Love Mon Bijou</h1>
+        <nav><a href="index.html">Boutique</a></nav>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+        <a class="btn" href="fabrication.html">Commande sur mesure</a>
+        <a class="btn" href="confirmation.html">Commandes</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Filters -->
+    <section class="filters" aria-label="Filtres produits">
+      <input id="searchInput" type="text" placeholder="Rechercher (référence, titre, description...)" style="flex:1;min-width:160px;" />
+      <select id="typeFilter"><option value="">— Type —</option></select>
+      <select id="colorFilter"><option value="">— Couleur —</option></select>
+      <select id="eventFilter"><option value="">— Évènement —</option></select>
+      <select id="fabFilter"><option value="">— Fabrication possible —</option>
+      </select>
+      <button id="clearFilters" class="btn">Effacer</button>
+    </section>
+
+    <!-- Product grid -->
+   <div class="filter-bar">
+    <div class="filter-group">
+        <label for="eventFilter">Événement :</label>
+        <select id="eventFilter">
+            <option value="">Tous les événements</option>
+        </select>
+    </div>
+</div>
+   <section id="product-list" class="grid products-grid" aria-live="polite"></section>
+
+    <!-- Cart panel (simple markup, script remplit) -->
+    <aside id="cart-panel" style="position:fixed; right:18px; top:18px; width:320px; max-width:90%; display:none; background:#fff; border-radius:12px; box-shadow:0 16px 60px rgba(0,0,0,0.2); z-index:1500; padding:12px;">
+      <button class="close-cart" style="float:right;">×</button>
+      <h3>Mon Panier <span class="cart-count" style="display:none;">0</span></h3>
+      <div class="cart-items" style="max-height:360px; overflow:auto;"></div>
+      <div class="cart-subtotal" style="margin-top:12px;">Sous-total: 0.00 €</div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="cart-checkout-btn btn btn-primary">Payer (choisir)</button>
+        <button class="cart-clear btn">Vider</button>
+      </div>
+    </aside>
+
+    <!-- cart floating icon -->
+    <button class="cart-icon" id="cartIcon" aria-label="Ouvrir le panier">
+      🛒 <span class="cart-count" id="cartCount" style="display:none;">0</span>
+    </button>
+
+  </main>
+
+  <script src="assets/script.js"></script>
+  <script>
+    // panel open/close wiring simpler for index
+    (function(){
+      const cartIcon = document.getElementById('cartIcon');
+      const cartPanel = document.getElementById('cart-panel');
+      if(cartIcon && cartPanel){
+        cartIcon.addEventListener('click', () => {
+          cartPanel.style.display = cartPanel.style.display === 'block' ? 'none' : 'block';
+        });
+        cartPanel.querySelector('.close-cart')?.addEventListener('click', () => cartPanel.style.display = 'none');
+      }
+
+      document.getElementById('clearFilters')?.addEventListener('click', () => {
+        document.getElementById('searchInput').value = '';
+        ['typeFilter','colorFilter','eventFilter','fabFilter'].forEach(id => { const s = document.getElementById(id); if(s) s.value = ''; });
+        if(window.LMJ && window.LMJ.reload) window.LMJ.reload();
+      });
+
+      // auto-load example: we rely on assets/script.js init (DOMContentLoaded)
+    })();
+  </script>
+</body>
+</html>

@@ -1,98 +1,168 @@
-<html>
-
+<!doctype html>
+<html lang="fr">
 <head>
-<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
-<meta name=Generator content="Microsoft Word 15 (filtered)">
-<style>
-<!--
- /* Font Definitions */
- @font-face
-	{font-family:"Cambria Math";
-	panose-1:2 4 5 3 5 4 6 3 2 4;}
-@font-face
-	{font-family:Calibri;
-	panose-1:2 15 5 2 2 2 4 3 2 4;}
-@font-face
-	{font-family:"Segoe UI Emoji";
-	panose-1:2 11 5 2 4 2 4 2 2 3;}
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin-top:0cm;
-	margin-right:0cm;
-	margin-bottom:8.0pt;
-	margin-left:0cm;
-	line-height:107%;
-	font-size:11.0pt;
-	font-family:"Calibri",sans-serif;}
-.MsoChpDefault
-	{font-size:11.0pt;}
-.MsoPapDefault
-	{margin-bottom:8.0pt;
-	line-height:107%;}
-@page WordSection1
-	{size:595.3pt 841.9pt;
-	margin:70.85pt 70.85pt 70.85pt 70.85pt;}
-div.WordSection1
-	{page:WordSection1;}
--->
-</style>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Commande confirmée — Love Mon Bijou</title>
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    body { background:#fffaf3; color:#5a4634; font-family:Poppins, sans-serif; padding:32px; }
+    .container { max-width:900px; margin:24px auto; background:#fff; padding:22px;border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.06); }
+    h1 { color:#b8964c; margin-bottom:8px; }
+    .order-meta { margin-bottom:18px; font-size:0.95rem; color:#5a4634; }
+    .items { margin-top:12px; }
+    .item { display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid #f2e9df; }
+    .item img { width:72px; height:72px; object-fit:cover; border-radius:8px; }
+    .item .info { flex:1; }
+    .item .info strong { display:block; }
+    .item .meta { font-size:0.9rem; color:#5a4634; margin-top:6px; }
+    .totals { text-align:right; margin-top:18px; font-size:1.05rem; }
+    .btn { display:inline-block; padding:10px 16px; border-radius:10px; text-decoration:none; background:linear-gradient(135deg,#d4af37,#b8860b); color:#fff; font-weight:600; }
+    .muted { color:#856a52; opacity:.9; font-size:0.95rem; }
+    pre { background:#f7f3ee; padding:10px; border-radius:8px; overflow:auto; }
+  </style>
 </head>
+<body>
+  <div class="container">
+    <h1>✅ Commande confirmée</h1>
+    <div id="meta" class="order-meta">
+      <div id="order-number" class="muted"></div>
+      <div id="order-date" class="muted"></div>
+    </div>
 
-<body lang=FR style='word-wrap:break-word'>
+    <div id="items" class="items"></div>
 
-<div class=WordSection1>
+    <div id="totals" class="totals"></div>
 
-<p class=MsoNormal>&lt;!DOCTYPE html&gt;&nbsp;</p>
+    <p style="margin-top:16px">
+      <a href="index.html" class="btn">← Retour à la boutique</a>
+    </p>
 
-<p class=MsoNormal>&lt;html lang=&quot;fr&quot;&gt;&nbsp;</p>
+    <details style="margin-top:12px;color:#7a6956"><summary>Données brutes (debug)</summary>
+      <pre id="debug"></pre>
+    </details>
+  </div>
 
-<p class=MsoNormal>&lt;head&gt;&nbsp;</p>
+<script>
+/*
+ success.html behavior:
+ - If URL contains ?order=<base64(JSON)> => decode and display
+ - Else if URL contains ?session_id=... => try fetch('/retrieve-session?session_id=...') and display (Netlify function)
+ - Else show a friendly message
+*/
 
-<p class=MsoNormal>&nbsp; &lt;meta charset=&quot;UTF-8&quot;&gt;&nbsp;</p>
+function b64DecodeUnicode(str) {
+  try { return decodeURIComponent(Array.prototype.map.call(atob(str), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')); }
+  catch (e) { try { return atob(str); } catch(e2) { return null; } }
+}
+function safeText(s){ return s == null ? '' : String(s); }
 
-<p class=MsoNormal>&nbsp; &lt;title&gt;Paiement r�ussi - Bijouterie
-�l�gance&lt;/title&gt;&nbsp;</p>
+async function displayOrderFromSummary(summary) {
+  const itemsWrap = document.getElementById('items');
+  itemsWrap.innerHTML = '';
+  let subtotal = 0;
 
-<p class=MsoNormal>&nbsp; &lt;meta name=&quot;viewport&quot;
-content=&quot;width=device-width, initial-scale=1&quot;&gt;&nbsp;</p>
+  if (!summary || !Array.isArray(summary.items) || summary.items.length === 0) {
+    itemsWrap.innerHTML = '<p>Aucun produit trouvé dans la commande.</p>';
+    document.getElementById('totals').textContent = '';
+    return;
+  }
 
-<p class=MsoNormal>&nbsp; &lt;style&gt;&nbsp;</p>
+  for (const it of summary.items) {
+    const price = Number(it.price || 0);
+    const line = price * (Number(it.qty) || 1);
+    subtotal += line;
 
-<p class=MsoNormal>&nbsp;&nbsp;&nbsp; body { font-family: Arial, sans-serif;
-text-align: center; padding: 3rem; background: #f9f9f9; }&nbsp;</p>
+    const div = document.createElement('div');
+    div.className = 'item';
+    const img = document.createElement('img');
+    // Try to build a safe thumbnail URL (if original item had image or reference)
+    img.src = (it.image && it.image.startsWith('http')) ? it.image : (it.reference ? `/assets/placeholder.png` : '/assets/placeholder.png');
+    const info = document.createElement('div');
+    info.className = 'info';
+    info.innerHTML = `<strong>${safeText(it.title)} ${it.size ? '— Taille ' + safeText(it.size) : ''}</strong>
+                      <div class="meta">${safeText(it.reference || '')} ${it.fabrication ? '• Fabrication' : ''}</div>
+                      <div class="meta">Événement: ${safeText((it.events||[]).join(', '))}</div>
+                      <div class="meta">${safeText(it.qty)} × ${price.toFixed(2)} € = ${line.toFixed(2)} €</div>
+                      ${it.fabricationOptions ? `<div class="meta">Options: ${JSON.stringify(it.fabricationOptions)}</div>` : ''}`;
+    div.appendChild(img);
+    div.appendChild(info);
+    itemsWrap.appendChild(div);
+  }
 
-<p class=MsoNormal>&nbsp;&nbsp;&nbsp; h1 { color: #635bff; }&nbsp;</p>
+  // simple shipping calc
+  const shipping = subtotal >= 100 ? 0 : (subtotal === 0 ? 0 : 5);
+  const total = subtotal + shipping;
+  document.getElementById('totals').innerHTML = `<strong>Sous-total :</strong> ${subtotal.toFixed(2)} € — <strong>Frais :</strong> ${shipping.toFixed(2)} € → <strong>Total :</strong> ${total.toFixed(2)} €`;
+}
 
-<p class=MsoNormal>&nbsp;&nbsp;&nbsp; a { text-decoration: none; color:
-#635bff; font-weight: bold; }&nbsp;</p>
+async function tryLoadFromSession(sessionId) {
+  try {
+    const resp = await fetch(`/.netlify/functions/retrieve-sessions?session_id=${encodeURIComponent(sessionId)}`);
+    if (!resp.ok) throw new Error('fetch session failed: ' + resp.status);
+    const data = await resp.json();
+    // Expected: data.session + metadata (depends on your backend). We'll try to map items.
+    // If your backend stored the cart in metadata, parse it; else show basic details.
+    const debug = document.getElementById('debug');
+    debug.textContent = JSON.stringify(data, null, 2);
 
-<p class=MsoNormal>&nbsp; &lt;/style&gt;&nbsp;</p>
+    // attempt: metadata.cart or metadata.order
+    const metadata = data.session?.metadata || data.metadata || {};
+    let orderSummary = null;
+    if (metadata.order) {
+      try { orderSummary = JSON.parse(metadata.order); }
+      catch (e) { /* ignore */ }
+    } else if (metadata.cart) {
+      try { orderSummary = JSON.parse(metadata.cart); } catch (e) {}
+    }
 
-<p class=MsoNormal>&lt;/head&gt;&nbsp;</p>
+    // fallback: create a minimal summary from session.amount_total / customer_details
+    if (orderSummary) {
+      await displayOrderFromSummary(orderSummary);
+      document.getElementById('order-number').textContent = 'Numéro de commande : ' + safeText(data.session.id || metadata.order_id || '');
+      document.getElementById('order-date').textContent = 'Date : ' + new Date().toLocaleString('fr-FR');
+    } else {
+      // minimal display
+      const itemsWrap = document.getElementById('items');
+      itemsWrap.innerHTML = `<p>Merci — le paiement a été reçu (session ${safeText(data.session.id || '')}).</p><p class="muted">Détails bruts dans la section debug.</p>`;
+      document.getElementById('order-number').textContent = 'Numéro de commande : ' + safeText(data.session.id || '');
+      document.getElementById('order-date').textContent = 'Date : ' + new Date().toLocaleString('fr-FR');
+    }
+  } catch (e) {
+    console.error(e);
+    document.getElementById('items').innerHTML = `<p>Commande confirmée — mais impossible de récupérer les détails de session. (Erreurs en console)</p>`;
+    document.getElementById('debug').textContent = e.toString();
+  }
+}
 
-<p class=MsoNormal>&lt;body&gt;&nbsp;</p>
+document.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const orderB64 = params.get('order');
+  const sessionId = params.get('session_id');
 
-<p class=MsoNormal>&nbsp; &lt;h1&gt;Merci pour votre commande ! <span
-style='font-family:"Segoe UI Emoji",sans-serif'>&#128142;</span>&lt;/h1&gt;&nbsp;</p>
+  if (orderB64) {
+    const jsonStr = b64DecodeUnicode(orderB64);
+    let obj = null;
+    try { obj = JSON.parse(jsonStr); }
+    catch (e) { console.error('order parse error', e); }
+    if (obj) {
+      document.getElementById('order-number').textContent = 'Commande (mode local)';
+      document.getElementById('order-date').textContent = 'Date : ' + new Date().toLocaleString('fr-FR');
+      document.getElementById('debug').textContent = JSON.stringify(obj, null, 2);
+      await displayOrderFromSummary(obj);
+      return;
+    }
+  }
 
-<p class=MsoNormal>&nbsp; &lt;p&gt;Votre paiement a �t� accept� et votre
-commande est en cours de traitement.&lt;/p&gt;&nbsp;</p>
+  if (sessionId) {
+    // backend present -> try to load more info
+    await tryLoadFromSession(sessionId);
+    return;
+  }
 
-<p class=MsoNormal>&nbsp; &lt;p&gt;Vous recevrez un email de confirmation sous
-peu.&lt;/p&gt;&nbsp;</p>
-
-<p class=MsoNormal>&nbsp; &lt;p&gt;&lt;a href=&quot;/&quot;&gt;Retour �
-l'accueil&lt;/a&gt;&lt;/p&gt;&nbsp;</p>
-
-<p class=MsoNormal>&lt;/body&gt;&nbsp;</p>
-
-<p class=MsoNormal>&lt;/html&gt;&nbsp;</p>
-
-<p class=MsoNormal>&nbsp;</p>
-
-</div>
-
+  // nothing => message
+  document.getElementById('items').innerHTML = '<p>Aucune commande détaillée fournie. Si vous testez en local, utilisez la redirection client (order base64) ou passez par votre backend Stripe qui redirige vers success.html?session_id=...</p>';
+});
+</script>
 </body>
-
 </html>

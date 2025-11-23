@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Commande confirmée — Love Mon Bijou</title>
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    body{ background:#fffaf3; color:#5a4634; font-family:"Poppins",sans-serif; padding:28px; }
+    .container{ max-width:900px; margin:0 auto; background:white; padding:22px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.06); }
+    .items{ margin-top:14px; }
+    .item{ display:flex; gap:12px; padding:8px 0; border-bottom:1px solid #f0e8da; align-items:center; }
+    .item img{ width:72px; height:72px; object-fit:cover; border-radius:8px; }
+    .total{ text-align:right; margin-top:12px; font-weight:700; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>✅ Commande confirmée</h1>
+    <p>Merci — votre paiement a été reçu. Ci-dessous le récapitulatif des articles achetés :</p>
+
+    <div id="orderSummary" class="items">
+      <p id="noOrder">Chargement du récapitulatif...</p>
+    </div>
+
+    <div id="meta" style="margin-top:12px; font-size:0.95rem; color:#6b5842;"></div>
+
+    <div style="margin-top:18px;">
+      <a class="btn btn-primary" href="index.html">← Retour à la boutique</a>
+      <button class="btn" id="printBtn">Imprimer</button>
+    </div>
+  </main>
+
+  <script>
+    // success page: try order summary via multiple ways
+    (function(){
+      function formatPrice(n){ return (n||0).toFixed(2) + ' €'; }
+      const container = document.getElementById('orderSummary');
+      const noOrder = document.getElementById('noOrder');
+
+      // 1) Try to parse a 'summary' in query param (JSON encoded)
+      const params = new URLSearchParams(window.location.search);
+      let summary = null;
+      try {
+        if (params.has('summary')) {
+          summary = JSON.parse(decodeURIComponent(params.get('summary')));
+        } else if (localStorage.getItem('lastOrder')) {
+          summary = JSON.parse(localStorage.getItem('lastOrder'));
+        }
+      } catch (e) {
+        console.warn('summary parse error', e);
+      }
+
+      if (!summary || !summary.items || summary.items.length === 0) {
+        noOrder.textContent = 'Récapitulatif non disponible. Si tu veux, vérifie tes emails (mail de confirmation) ou contacte le support.';
+        return;
+      }
+
+      // render items
+      noOrder.remove();
+      let total = 0;
+      for (const it of summary.items) {
+        const itemEl = document.createElement('div'); itemEl.className = 'item';
+        const img = document.createElement('img'); img.src = it.image || (it.product && it.product.image) || 'assets/placeholder.png';
+        const info = document.createElement('div'); info.style.flex = '1';
+        const title = document.createElement('div'); title.innerHTML = `<strong>${it.title || it.product?.TITRE || it.key}</strong>`;
+        const meta = document.createElement('div'); meta.style.fontSize = '0.95rem'; meta.style.color = '#6b5842';
+        const qty = it.qty || it.quantity || 1;
+        const price = it.price || it.unitPrice || (it.product && it.product.price) || 0;
+        const size = it.size ? ` — Taille ${it.size}` : (it.product && it.product.__size ? ` — Taille ${it.product.__size}` : '');
+        meta.innerHTML = `${qty} × ${formatPrice(price)}${size}`;
+        info.appendChild(title); info.appendChild(meta);
+        const right = document.createElement('div'); right.style.textAlign = 'right';
+        const line = document.createElement('div'); line.innerHTML = formatPrice(qty * price);
+        right.appendChild(line);
+        itemEl.appendChild(img); itemEl.appendChild(info); itemEl.appendChild(right);
+        container.appendChild(itemEl);
+        total += qty * price;
+      }
+
+      const totalEl = document.createElement('div'); totalEl.className = 'total'; totalEl.textContent = `Total payé : ${formatPrice(total)}`;
+      container.appendChild(totalEl);
+
+      // meta
+      const metaBox = document.getElementById('meta');
+      if (summary.orderId) metaBox.innerHTML = `Numéro de commande: <strong>${summary.orderId}</strong>`;
+      if (summary.email) metaBox.innerHTML += ` — Email: <strong>${summary.email}</strong>`;
+
+      // clear lastOrder in localStorage after display (optional)
+      try { localStorage.removeItem('lastOrder'); } catch(e){}
+
+      // print
+      document.getElementById('printBtn').addEventListener('click', () => window.print());
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,299 @@
+```javascript
+// ======================================
+// 💳 Serveur Stripe pour Bijoux ChoucHou
+// ======================================
+
+const express = require("express");
+const Stripe = require("stripe");
+const dotenv = require("dotenv");
+const cors = require("cors");
+
+// Initialisation
+dotenv.config();
+const app = express();
+
+// ===========================
+// Middleware CORS (CORRIGÉ)
+// ===========================
+app.use(cors({
+  origin: '*', // Permet toutes les origines en dev
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false
+}));
+
+app.use(express.json());
+
+// Clé secrète Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// ===========================
+// Route de test
+// ===========================
+app.get("/", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    message: "✅ Serveur Stripe opérationnel",
+    timestamp: new Date().toISOString(),
+    cors: "enabled"
+  });
+});
+
+// ===========================
+// OPTIONS pour préflight CORS
+// ===========================
+app.options("/create-checkout-session", (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  res.sendStatus(200);
+});
+
+// ===========================
+// Création de session Stripe
+// ===========================
+app.post("/create-checkout-session", async (req, res) => {
+  // Headers CORS explicites
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+
+  try {
+    const { items } = req.body;
+
+    console.log("📦 Requête reçue avec", items?.length || 0, "article(s)");
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "Panier vide ou invalide" });
+    }
+
+           // Conversion en format Stripe
+    const lineItems = items.map(item => {
+      if (!item.titre || !item.prix) {
+        throw new Error("Article invalide: " + JSON.stringify(item));
+      }
+
+      return {
+        price_data: {
+          currency: "eur",
+          product_data: {
+            name: item.titre || "Bijou",
+            description: [
+              item.reference ? `Réf: ${item.reference}` : '',
+              item.taille ? `Taille: ${item.taille}` : ''
+            ].filter(Boolean).join(' | '),
+            images: item.image ? [item.image] : []
+          },
+          unit_amount: Math.round(item.prix * 100),
+        },
+        quantity: item.quantite || item.qty || 1,
+      };
+    });
+
+    // Création de la session Stripe
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      mode: "payment",
+      success_url: `${req.headers.origin || 'http://localhost:8000'}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin || 'http://localhost:8000'}/cancel.html`,
+      billing_address_collection: 'required',
+      shipping_address_collection: {
+        allowed_countries: ['FR', 'BE', 'CH', 'LU', 'MC']
+      }
+    });
+
+    console.log("✅ Session créée:", session.id);
+
+    res.json({ 
+      url: session.url,
+      sessionId: session.id
+    });
+
+  } catch (err) {
+    console.error("❌ Erreur Stripe:", err.message);
+    res.status(500).json({ 
+      error: err.message,
+      type: err.type || 'unknown_error'
+    });
+  }
+});
+
+// ===========================
+// Récupération session
+// ===========================
+app.get("/session/:sessionId", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  
+  try {
+    const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+    res.json(session);
+  } catch (error) {
+    console.error("❌ Erreur récupération session:", error);
+    res.status(404).json({ error: "Session introuvable" });
+  }
+});
+
+// ===========================
+// Gestion 404
+// ===========================
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: "Route non trouvée",
+    path: req.path,
+    availableRoutes: [
+      "GET  /",
+      "POST /create-checkout-session",
+      "GET  /session/:sessionId"
+    ]
+  });
+});
+
+// ===========================
+// Démarrage serveur
+// ===========================
+const PORT = process.env.PORT || 4242;
+
+app.listen(PORT, () => {
+  console.log("\n" + "=".repeat(50));
+  console.log("🚀 Serveur Stripe pour Bijoux ChoucHou");
+  console.log("=".repeat(50));
+  console.log(`📍 URL: http://localhost:${PORT}`);
+  console.log(`🔑 Clé Stripe: ${process.env.STRIPE_SECRET_KEY ? '✅ Configurée' : '❌ MANQUANTE'}`);
+  console.log(`🌍 CORS: ✅ Activé pour toutes origines (dev)`);
+  console.log("=".repeat(50) + "\n");
+});
+
+process.on('SIGINT', () => {
+  console.log('\n👋 Arrêt du serveur Stripe...');
+  process.exit(0);
+});
+```
+
+---
+
+### **3. Redémarrez le serveur Stripe**
+
+Dans votre terminal (dossier `server/`) :
+
+```bash
+# Arrêtez le serveur (Ctrl+C)
+# Puis relancez
+npm start
+```
+
+Vous devriez voir :
+```
+==================================================
+🚀 Serveur Stripe pour Bijoux ChoucHou
+==================================================
+📍 URL: http://localhost:4242
+🔑 Clé Stripe: ✅ Configurée
+🌍 CORS: ✅ Activé pour toutes origines (dev)
+==================================================
+```
+
+---
+
+### **4. Testez le serveur directement**
+
+Ouvrez un nouvel onglet sur : `http://localhost:4242`
+
+Vous devriez voir :
+```json
+{
+  "status": "ok",
+  "message": "✅ Serveur Stripe opérationnel",
+  "timestamp": "2025-01-...",
+  "cors": "enabled"
+}
+```
+
+---
+
+### **5. Si l'erreur persiste, vérifiez votre navigateur**
+
+Certains navigateurs bloquent `localhost` différemment. Essayez :
+
+**Option A : Utilisez `127.0.0.1` au lieu de `localhost`**
+
+Dans `script.js`, changez :
+```javascript
+const STRIPE_SERVER_URL = "http://127.0.0.1:4242";
+```
+
+**Option B : Désactivez temporairement les extensions**
+
+Désactivez les bloqueurs de pub (uBlock, AdBlock) qui peuvent bloquer les requêtes.
+
+**Option C : Testez dans un autre navigateur**
+
+Testez dans Chrome/Firefox/Edge pour voir si c'est spécifique au navigateur.
+
+---
+
+### **6. Si CORS pose toujours problème, utilisez un proxy**
+
+Ajoutez cette fonction dans `script.js` comme solution de secours :
+
+```javascript
+// Alternative si CORS bloque
+const checkoutWithStripe = async (cart) => {
+  if (!cart || cart.length === 0) {
+    showTempMessage("❌ Panier vide", 2000);
+    return;
+  }
+
+  try {
+    console.log("🛒 Envoi du panier à Stripe:", cart);
+
+    // ✅ Mode no-cors en dernier recours
+    const res = await fetch(`${STRIPE_SERVER_URL}/create-checkout-session`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ items: cart }),
+      mode: "cors" // Essayez "no-cors" si ça bloque
+    });
+
+    console.log("📡 Réponse serveur:", res.status);
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || `Erreur serveur ${res.status}`);
+    }
+
+    const session = await res.json();
+    console.log("✅ Session Stripe créée:", session.sessionId);
+
+    if (session.url) {
+      window.location.href = session.url;
+    } else {
+      throw new Error("URL de paiement manquante");
+    }
+
+  } catch (err) {
+    console.error("❌ Erreur Stripe:", err);
+    
+    if (err.message.includes("NetworkError") || err.message.includes("CORS")) {
+      showTempMessage(
+        "⚠️ Problème de connexion au serveur Stripe.\n\n" +
+        "Vérifiez que le serveur tourne sur http://localhost:4242", 
+        5000
+      );
+      
+      setTimeout(() => {
+        if (confirm("Le paiement en ligne est indisponible.\n\nVoulez-vous commander par email ?")) {
+          sendOrderByEmail(cart);
+        }
+      }, 1500);
+      
+    } else {
+      showTempMessage(`❌ Erreur: ${err.message}`, 4000);
+    }
+  }
+};
+```
+
+---

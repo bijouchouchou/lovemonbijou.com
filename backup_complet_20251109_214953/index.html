@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Love Mon Bijou</title>
+
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>💎</text></svg>">
+</head>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Love Mon Bijou</title>
+
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>💎</text></svg>">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>💎 Love Mon Bijou</h1>
+      <button class="theme-btn" id="themeToggle">🌙 Mode Nuit</button>
+    </header>
+
+    <!-- Recherche & filtres -->
+    <section class="filters">
+      <input id="searchInput" type="search" placeholder="Recherche (titre, type, description, référence)..." />
+
+      <div class="filter-row">
+        <select id="typeFilter"><option value="">— Type —</option></select>
+        <select id="titleFilter"><option value="">— Titre —</option></select>
+        <select id="colorFilter"><option value="">— Couleur —</option></select>
+        <select id="stockFilter"><option value="">— Stock —</option></select>
+        <select id="fabFilter"><option value="">— Fabrication —</option></select>
+
+        <select id="sortSelect">
+          <option value="">— Trier —</option>
+          <option value="price_asc">Prix ↑</option>
+          <option value="price_desc">Prix ↓</option>
+          <option value="title_asc">Titre A→Z</option>
+          <option value="stock_desc">Stock ↓</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Vos autres sections ici... -->
+
+  </div>
+
+  <!-- ⚠️ AJOUTEZ CES LIGNES JUSTE AVANT </body> -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="assets/script.js"></script>
+</body>
+</html>
+<body>
+  <div class="container">
+
+        <select id="sortSelect">
+          <option value="">— Trier —</option>
+          <option value="price_asc">Prix ↑</option>
+          <option value="price_desc">Prix ↓</option>
+          <option value="title_asc">Titre A→Z</option>
+          <option value="stock_desc">Stock ↓</option>
+        </select>
+      </div>
+    </section>
+
+     <!-- Liste des produits -->
+    <main id="product-list" class="grid"></main>
+  </div>
+
+  <!-- ✅ Modal Sur Mesure -->
+  <div id="custom-order-modal" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+  ">
+    <div style="
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    ">
+      <button id="close-custom-modal" style="
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: #ff4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+      ">✖</button>
+
+      <h2 style="color: #333; margin-bottom: 20px;">✨ Commande Sur Mesure</h2>
+      
+      <form id="custom-order-form">
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Votre nom *</label>
+          <input type="text" name="name" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Email *</label>
+          <input type="email" name="email" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Téléphone</label>
+          <input type="tel" name="phone" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Type de bijou *</label>
+          <select name="type" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+            <option value="">Choisissez...</option>
+            <option value="bague">Bague</option>
+            <option value="collier">Collier</option>
+            <option value="bracelet">Bracelet</option>
+            <option value="boucles">Boucles d'oreilles</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Description détaillée *</label>
+          <textarea name="description" required rows="4" placeholder="Décrivez le bijou que vous souhaitez : style, matériaux, pierres, dimensions..." style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;"></textarea>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Photos/Croquis/PDF</label>
+          <input type="file" name="images" multiple accept="image/*,.pdf" style="width: 100%; padding: 10px;">
+          <small style="color: #666;">Formats acceptés : photos (JPG, PNG, etc.) et PDF</small>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Budget approximatif</label>
+          <input type="text" name="budget" placeholder="ex: 500-700 €" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+        </div>
+        
+        <button type="submit" style="
+          background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+          color: white;
+          border: none;
+          padding: 15px 30px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 18px;
+          font-weight: bold;
+          width: 100%;
+        ">Envoyer ma demande</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ✅ Bouton Flottant Sur Mesure -->
+  <button id="custom-order-btn" style="
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 15px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    z-index: 998;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  ">
+    ✨ Sur Mesure
+  </button>
+
+  <!-- ✅ Panneau Panier -->
+  <div id="cart-panel"></div>
+
+  <!-- Script principal -->
+  <script src="assets/script.js"></script>
+</body>
+</html>

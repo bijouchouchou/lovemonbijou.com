@@ -2,9 +2,25 @@
   "name": "lovemonbijou",
   "version": "1.0.0",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "express": "^5.1.0",
     "googleapis": "^144.0.0",
     "papaparse": "^5.5.3",
-    "stripe": "^13.3.0"
-  }
+    "stripe": "^13.11.0"
+  },
+  "description": "bijouterie-elegance/\r │\r ├── index.html\r ├── success.html\r ├── cancel.html\r ├── fabrication.html\r │\r ├── data/\r │   ├── products.json\r │   └── promo.json\r │\r ├── emails/\r │   └── template.html\r │\r ├── netlify/\r │   └── functions/\r │       ├── create-checkout-session.js\r │       ├── get-session-details.js\r │       └── stripe-webhook.js\r │\r └── README_DEPLOY.md",
+  "main": "get-products.js",
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "typescript-eslint": "^8.46.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

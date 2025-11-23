@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Love Mon Bijou</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="assets/style.css">
+
+  <!-- JS -->
+  <script defer src="assets/script.js"></script>
+</head>
+
+<body>
+
+  <!-- ==========================
+        HEADER
+  =========================== -->
+ <div class="promo-slider">
+  <span id="promoMessage">Chargement...</span>
+</div>
+
+ <header class="header">
+    <div class="logo">LOVE MON BIJOU</div>
+
+    <div class="cart-icon" id="openCartBtn">
+      🛒 <span id="cartCount" class="cart-count">0</span>
+    </div>
+  </header>
+
+
+  <!-- ==========================
+        FILTRE ÉVÉNEMENT
+  =========================== -->
+  <div class="filter-bar">
+    <label for="eventFilter">Événement :</label>
+    <select id="eventFilter">
+      <option value="">Tous les événements</option>
+    </select>
+  </div>
+
+
+  <!-- ==========================
+        GRILLE PRODUITS
+  =========================== -->
+  <main>
+    <div id="product-list" class="products-grid"></div>
+  </main>
+
+
+  <!-- ==========================
+        PANIER
+  =========================== -->
+  <aside id="cart-panel" class="cart-panel">
+    <button id="closeCartBtn" class="close-cart">×</button>
+
+    <h2>Votre panier</h2>
+
+    <div class="cart-items"></div>
+
+    <div class="cart-summary">
+      <div class="cart-subtotal">Sous-total : <span class="value">0 €</span></div>
+      <div class="cart-shipping">Frais de port : <span class="value">0 €</span></div>
+      <div class="cart-total">Total : <strong>0 €</strong></div>
+    </div>
+
+    <div class="checkout-buttons">
+      <button id="btn-checkout-stripe" class="checkout-btn stripe">Payer par Carte</button>
+      <button id="btn-checkout-paypal" class="checkout-btn paypal">PayPal</button>
+      <button id="btn-checkout-alma" class="checkout-btn alma">3x – Alma</button>
+    </div>
+  </aside>
+
+
+  <!-- ==========================
+        FOOTER
+  =========================== -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="contact.html">Contact</a>
+      <a href="guide-tailles.html">Guide des tailles</a>
+      <a href="ethique.html">Nos engagements</a>
+      <a href="cgv.html">CGV</a>
+      <a href="mentions-legales.html">Mentions légales</a>
+    </div>
+    <p>© 2025 Love Mon Bijou — Tous droits réservés</p>
+  </footer>
+
+</body>
+</html>

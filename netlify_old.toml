@@ -1,0 +1,1 @@
+mon netlify actuel ? [build] publish = "." command = "echo 'Static site'" [functions] directory = "netlify/functions" node_bundler = "esbuild" [dev] command = "" port = 8888 publish = "." [[headers]] for = "/*" [headers.values] Access-Control-Allow-Origin = "*"

@@ -30,7 +30,7 @@
   <select id="priceSort">
     <option value="">--Aucun--</option>
     <option value="asc">Prix croissant</option>
-    <option value="desc">Prix décroissant</option>
+    <option value="desc">Prix dÃ©croissant</option>
   </select>
 </div>
 
@@ -41,8 +41,8 @@
       <th>Couleur</th>
       <th>Or</th>
       <th>Poids</th>
-      <th>Quantités par taille</th>
-      <th>Price (€)</th>
+      <th>QuantitÃ©s par taille</th>
+      <th>Price (â‚¬)</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -52,18 +52,40 @@
 let products = [];
 
 async function loadProducts() {
-  try {
-    const res = await fetch('/.netlify/functions/get-products');
-    if (!res.ok) throw new Error('Erreur lors du chargement des produits');
-    products = await res.json();
-    populateTypeDropdown();
-    populateTable();
-  } catch (err) {
-    console.error(err);
-    alert('Impossible de charger le catalogue. Vérifiez la console.');
-  }
+    try {
+        console.log('ðŸ”„ Chargement des produits...');
+        
+        const res = await fetch('/.netlify/functions/get-products');
+        const data = await res.json();
+        
+        console.log('ðŸ“¦ RÃ©ponse API:', data);
+        
+        // âœ… CORRECTION : Extraire le tableau
+        if (data.success && Array.isArray(data.products)) {
+            products = data.products; // â† Prendre data.products, pas data
+        } else if (Array.isArray(data)) {
+            products = data;
+        } else {
+            console.error('âŒ Format incorrect:', data);
+            products = [];
+        }
+        
+        // Rendre accessible globalement
+        window.products = products;
+        
+        console.log('âœ… Produits chargÃ©s:', products.length);
+        if (products.length > 0) {
+            console.log('ðŸ“¦ Premier produit:', products[0]);
+        }
+        
+        populateTypeDropdown();
+        populateTable();
+        
+    } catch (err) {
+        console.error('âŒ Erreur:', err);
+        alert('Impossible de charger le catalogue');
+    }
 }
-
 function populateTypeDropdown() {
   const typeSelect = document.getElementById('typeSelect');
   const types = [...new Set(products.map(p => p.couleur))];
@@ -123,7 +145,7 @@ function populateTable() {
   });
 }
 
-// Événements filtres
+// Ã‰vÃ©nements filtres
 document.getElementById('typeSelect').addEventListener('change', e => {
   populateTitleDropdown(e.target.value);
   populateTable();
@@ -136,3 +158,4 @@ loadProducts();
 
 </body>
 </html>
+

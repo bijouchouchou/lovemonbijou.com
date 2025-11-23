@@ -1,0 +1,94 @@
+﻿**********************
+Début de la transcription Windows PowerShell
+Heure de début : 20251111123811
+Nom d'utilisateur : DESKTOP-6EHVM54\User
+Utilisateur runAs :  DESKTOP-6EHVM54\User
+Nom de la configuration : 
+Ordinateur : DESKTOP-6EHVM54 (Microsoft Windows NT 10.0.26200.0)
+Application hôte : C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+ID de processus : 13052
+PSVersion: 5.1.26100.7019
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7019
+BuildVersion: 10.0.26100.7019
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+=== VERIFICATION DU PROJET BIJOUX CHOUCHOU ===
+(Rapport : rapport_verif_20251111_1238.txt)
+
+--- Verification de la presence des fichiers ---
+OK: script.js (11,7 Ko, 257 lignes)
+Manquant: C:\Users\User\Documents\site avec marketing paiement tailles mail commande\script_0811.js
+Manquant: C:\Users\User\Documents\site avec marketing paiement tailles mail commande\script_backup_ok_20251111_1117.js
+OK: index.html (7,4 Ko, 200 lignes)
+OK: style.css (25,5 Ko, 1339 lignes)
+OK: products.csv (4,2 Ko, 99 lignes)
+
+--- Verification de l'encodage UTF-8 ---
+OK: script.js lisible en UTF-8
+OK: index.html lisible en UTF-8
+OK: style.css lisible en UTF-8
+OK: products.csv lisible en UTF-8
+
+--- Recherche de doublons dans script.js ---
+Doublons detectes:
+ -
+ - }
+ -     const cart = getCart();
+ -     const product = products.find(p => p.id === productId);
+ -
+ -
+ -         localStorage.setItem("bijouxCart", JSON.stringify(cart));
+ -         updateCartCount();
+ -     }
+ -         updatePanierPage();
+ -
+ -                 <div>
+ -                 </div>
+ -                     </div>
+ -                         </div>
+ -
+ -             </div>
+ -         </div>
+ -     `;
+ -             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+
+--- Comparaison des fichiers JS ---
+PS>Erreur de terminaison (Test-Path) : « Impossible de trouver un paramètre correspondant au nom « and ». »
+Test-Path : Impossible de trouver un paramètre correspondant au nom « and ».
+Au caractère C:\Users\User\Documents\site avec marketing paiement tailles mail commande\verif_projet_bijoux.ps1:72 : 27
++ if (Test-Path $jsFiles[0] -and Test-Path $jsFiles[1]) {
++                           ~~~~
+    + CategoryInfo          : InvalidArgument : (:) [Test-Path], ParameterBindingException
+    + FullyQualifiedErrorId : NamedParameterNotFound,Microsoft.PowerShell.Commands.TestPathCommand
+Test-Path : Impossible de trouver un paramètre correspondant au nom « and ».
+Au caractère C:\Users\User\Documents\site avec marketing paiement tailles mail commande\verif_projet_bijoux.ps1:72 : 27
++ if (Test-Path $jsFiles[0] -and Test-Path $jsFiles[1]) {
++                           ~~~~
+    + CategoryInfo          : InvalidArgument : (:) [Test-Path], ParameterBindingException
+    + FullyQualifiedErrorId : NamedParameterNotFound,Microsoft.PowerShell.Commands.TestPathCommand
+
+
+--- Verification structure JavaScript ---
+Accolades OK (52 / 52)
+
+--- Test syntaxe JavaScript (Node.js) ---
+
+Syntaxe OK
+
+--- Verification HTML et CSS ---
+index.html OK
+style.css OK
+
+--- Verification du CSV ---
+products.csv contient 98 entrees
+
+=== VERIFICATION TERMINEE ===
+Rapport: C:\Users\User\Documents\site avec marketing paiement tailles mail commande\rapport_verif_20251111_1238.txt
+**********************
+Fin de la transcription Windows PowerShell
+Heure de fin : 20251111123812
+**********************
