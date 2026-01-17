@@ -1,2 +1,26 @@
+# Node
 node_modules/
+npm-debug.log
+yarn-error.log
+
+# Env
 .env
+.env.local
+
+# Build / caches
+dist/
+build/
+.cache/
+
+# IDE / OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Backups and temp
+*.bak
+*.backup
+index_fichiers/
+
+# Avoid embedding a mirror repo inside the repo
+repo.git/
