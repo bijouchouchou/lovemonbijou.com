@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Panier Love Mon Bijou</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: sans-serif; background: #fffdf7; color: #3d2b1f; }
+        .test-container { padding: 20px; max-width: 800px; margin: 0 auto; }
+        h1 { color: #a6784c; margin-bottom: 20px; }
+        .test-buttons { display: flex; gap: 10px; margin: 20px 0; }
+        button { padding: 10px 20px; background: #b18a60; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        button:hover { background: #a6784c; }
+        .test-result { margin: 20px 0; padding: 15px; background: #fff7e8; border-radius: 8px; border: 1px solid #eadfca; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Panier Love Mon Bijou</h1>
+        
+        <div class="test-result" id="result">
+            <h3>Instructions :</h3>
+            <p>1. Cliquez sur "Ouvrir panneau test" ci-dessous</p>
+            <p>2. Testez les méthodes de fermeture :</p>
+            <ul>
+                <li>Bouton × en haut à droite</li>
+                <li>Clic en dehors du panneau (fond gris)</li>
+                <li>Touche ESC</li>
+            </ul>
+            <p>3. Vérifiez la console pour les logs</p>
+        </div>
+        
+        <div class="test-buttons">
+            <button onclick="window.location.reload()">🔄 Recharger la page</button>
+            <button onclick="openTestPanel()">🛒 Ouvrir panneau test</button>
+        </div>
+        
+        <div id="testOutput" class="test-result"></div>
+    </div>
+    
+    <script type="module">
+        import { TestCart } from './assets/js/test-panier.js';
+        
+        window.openTestPanel = function() {
+            new TestCart();
+            document.getElementById('testOutput').innerHTML = `
+                <h3>✅ Test lancé</h3>
+                <p>Regardez en haut à droite → Icône 🛒 Test</p>
+                <p>Cliquez dessus pour ouvrir le panneau</p>
+                <p>Ouvrez la console (F12) pour voir les logs</p>
+            `;
+        };
+        
+        console.log('Page de test chargée');
+    </script>
+</body>
+</html>

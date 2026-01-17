@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Love Mon Bijou</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* Styles de base */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #fffdf7; color: #5a4634; }
+        .header { background: #5a4634; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; }
+        .cart-icon { background: #b18a60; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .promo-slider { background: #eadfca; padding: 10px; text-align: center; font-weight: bold; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .product-card { border: 1px solid #b18a60; border-radius: 10px; padding: 15px; background: white; }
+        .cart-panel { position: fixed; right: 0; top: 0; width: 350px; height: 100%; background: white; box-shadow: -2px 0 10px rgba(0,0,0,0.1); padding: 20px; display: none; z-index: 1000; }
+        .close-cart { background: none; border: none; font-size: 24px; position: absolute; right: 15px; top: 15px; cursor: pointer; }
+        .footer { background: #5a4634; color: white; text-align: center; padding: 20px; margin-top: 40px; }
+        button { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <!-- Promotion -->
+    <div class="promo-slider">
+        <span id="promoMessage">🎁 Livraison gratuite à partir de 100€ | Échantillons offerts</span>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">LOVE MON BIJOU</div>
+        <div class="cart-icon" id="openCartBtn">
+            🛒 Panier (<span id="cartCount">0</span>)
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main>
+        <div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+            <h1>Nos Créations Bijoux</h1>
+            <div id="products-container" class="products-grid">
+                <!-- Les produits seront chargés ici -->
+                <div style="text-align: center; padding: 40px; grid-column: 1 / -1;">
+                    <p>Chargement de nos bijoux...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Panier -->
+    <aside id="cart-panel" class="cart-panel">
+        <button id="closeCartBtn" class="close-cart">×</button>
+        <h2>Votre Panier</h2>
+        
+        <div class="cart-items" style="max-height: 400px; overflow-y: auto; margin: 20px 0;">
+            <!-- Articles du panier -->
+        </div>
+        
+        <div class="cart-summary" style="border-top: 2px solid #b18a60; padding-top: 15px;">
+            <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+                <span>Sous-total:</span>
+                <span id="cartSubtotal">0.00 €</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+                <span>Frais de port:</span>
+                <span id="cartShipping">0.00 €</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; font-weight: bold; font-size: 18px;">
+                <span>Total:</span>
+                <span id="cartTotal">0.00 €</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button style="width: 100%; padding: 12px; background: #5a4634; color: white; border: none; border-radius: 5px; margin-bottom: 10px;">
+                Commander avec Stripe
+            </button>
+            <button style="width: 100%; padding: 12px; background: #003087; color: white; border: none; border-radius: 5px; margin-bottom: 10px;">
+                Payer avec PayPal
+            </button>
+            <button style="width: 100%; padding: 12px; background: #00a2a5; color: white; border: none; border-radius: 5px;">
+                Payer en 3x avec Alma
+            </button>
+        </div>
+    </aside>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div style="margin-bottom: 15px;">
+            <a href="#" style="color: white; margin: 0 10px;">Contact</a>
+            <a href="#" style="color: white; margin: 0 10px;">Guide des tailles</a>
+            <a href="#" style="color: white; margin: 0 10px;">Livraison & Retours</a>
+            <a href="#" style="color: white; margin: 0 10px;">CGV</a>
+        </div>
+        <p>© 2025 Love Mon Bijou - Bijoux artisanaux français</p>
+        <p style="font-size: 12px; opacity: 0.8; margin-top: 10px;">é è à ç © × — € ⚠️</p>
+    </footer>
+
+    <!-- SCRIPT TOUT-EN-UN -->
+    <script>
+        // ==================== CONFIGURATION ====================
+        console.log('💎 Love Mon Bijou - Démarrage');
+        
+        // ==================== DONNeES DE TEST ====================
+        const produitsTest = [
+            { id: 'AJR24686', nom: 'Bague Solitaire Or', description: 'Bague en or 18k avec diamant', prix: 98.00, image: '💍' },
+            { id: 'AJR24687', nom: 'Collier Perle Fine', description: 'Collier avec perle d\'eau douce', prix: 125.50, image: '📿' },
+            { id: 'AJR25175', nom: 'Boucles d\'Oreilles', description: 'Boucles en argent 925', prix: 45.00, image: '👂' },
+            { id: 'BJR24001', nom: 'Bracelet Maille', description: 'Bracelet en or jaune', prix: 89.90, image: '📿' },
+            { id: 'CJR24002', nom: 'Chaîne Pampa', description: 'Chaîne en or 14k', prix: 150.00, image: '⛓️' },
+            { id: 'DJR24003', nom: 'Pendentif Cœur', description: 'Pendentif en argent avec zircon', prix: 65.00, image: '❤️' }
+        ];
+        
+        // ==================== eTAT GLOBAL ====================
+        let panier = JSON.parse(localStorage.getItem('loveMonBijouPanier') || '[]');
+        
+        // ==================== INITIALISATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM chargé');
+            
+            // Initialiser le panier
+            initialiserPanier();
+            
+            // Charger les produits
+            chargerProduits();
+            
+            console.log('🚀 Site Love Mon Bijou prêt');
+        });
+        
+        // ==================== FONCTIONS PRODUITS ====================
+        function chargerProduits() {
+            const container = document.getElementById('products-container');
+            if (!container) return;
+            
+            console.log('📦 Chargement de ' + produitsTest.length + ' produits');
+            
+            let html = '';
+            produitsTest.forEach(produit => {
+                html += `
+                    <div class="product-card">
+                        <div style="height: 200px; background: #f5f0e6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 60px; margin-bottom: 15px;">
+                            ${produit.image}
+                        </div>
+                        <h3 style="margin: 0 0 10px 0; color: #5a4634;">${produit.nom}</h3>
+                        <p style="color: #777; font-size: 14px; margin: 0 0 10px 0;">${produit.description}</p>
+                        <p style="color: #5a4634; font-size: 18px; font-weight: bold; margin: 0 0 15px 0;">${produit.prix.toFixed(2)} €</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="voirDetails('${produit.id}')" style="flex: 1; padding: 10px; background: white; color: #5a4634; border: 1px solid #b18a60; border-radius: 5px;">
+                                Voir détails
+                            </button>
+                            <button onclick="ajouterAuPanier('${produit.id}', '${produit.nom}', ${produit.prix})" style="flex: 1; padding: 10px; background: #b18a60; color: white; border: none; border-radius: 5px;">
+                                Ajouter
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function voirDetails(idProduit) {
+            const produit = produitsTest.find(p => p.id === idProduit);
+            if (produit) {
+                alert(`Détails de ${produit.nom}:\n\n${produit.description}\n\nPrix: ${produit.prix.toFixed(2)} €\n\nRéférence: ${produit.id}`);
+            }
+        }
+        
+        // ==================== FONCTIONS PANIER ====================
+        function initialiserPanier() {
+            // Bouton ouvrir/fermer panier
+            const openBtn = document.getElementById('openCartBtn');
+            const closeBtn = document.getElementById('closeCartBtn');
+            const cartPanel = document.getElementById('cart-panel');
+            
+            if (openBtn && cartPanel) {
+                openBtn.addEventListener('click', () => {
+                    cartPanel.style.display = 'block';
+                    mettreAJourPanierAffichage();
+                });
+            }
+            
+            if (closeBtn && cartPanel) {
+                closeBtn.addEventListener('click', () => {
+                    cartPanel.style.display = 'none';
+                });
+            }
+            
+            // Fermer en cliquant a l'exterieur
+            document.addEventListener('click', (event) => {
+                if (cartPanel && cartPanel.style.display === 'block' && 
+                    !cartPanel.contains(event.target) && 
+                    !openBtn.contains(event.target)) {
+                    cartPanel.style.display = 'none';
+                }
+            });
+            
+            // Mettre a jour le compteur
+            mettreAJourCompteurPanier();
+        }
+        
+        function ajouterAuPanier(id, nom, prix) {
+            console.log('➕ Ajout au panier:', nom);
+            
+            // Verifier si deja dans le panier
+            const index = panier.findIndex(item => item.id === id);
+            
+            if (index >= 0) {
+                // Augmenter la quantite
+                panier[index].quantite += 1;
+            } else {
+                // Ajouter nouvel article
+                panier.push({
+                    id: id,
+                    nom: nom,
+                    prix: prix,
+                    quantite: 1
+                });
+            }
+            
+            // Sauvegarder
+            localStorage.setItem('loveMonBijouPanier', JSON.stringify(panier));
+            
+            // Mettre a jour l'affichage
+            mettreAJourCompteurPanier();
+            afficherNotification('✅ ' + nom + ' ajouté au panier');
+            
+            // Si le panier est ouvert, le mettre a jour
+            const cartPanel = document.getElementById('cart-panel');
+            if (cartPanel && cartPanel.style.display === 'block') {
+                mettreAJourPanierAffichage();
+            }
+        }
+        
+        function mettreAJourPanierAffichage() {
+            const cartItems = document.querySelector('.cart-items');
+            const subtotalElem = document.getElementById('cartSubtotal');
+            const shippingElem = document.getElementById('cartShipping');
+            const totalElem = document.getElementById('cartTotal');
+            
+            if (!cartItems || !subtotalElem) return;
+            
+            if (panier.length === 0) {
+                cartItems.innerHTML = '<p style="text-align: center; color: #777;">Votre panier est vide</p>';
+                subtotalElem.textContent = '0.00 €';
+                shippingElem.textContent = '0.00 €';
+                totalElem.textContent = '0.00 €';
+                return;
+            }
+            
+            // Calculer les totaux
+            let sousTotal = 0;
+            panier.forEach(item => {
+                sousTotal += item.prix * item.quantite;
+            });
+            
+            const fraisPort = sousTotal >= 100 ? 0 : 4.90;
+            const total = sousTotal + fraisPort;
+            
+            // Afficher les articles
+            let html = '';
+            panier.forEach(item => {
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee;">
+                        <div>
+                            <div style="font-weight: bold;">${item.nom}</div>
+                            <div style="font-size: 14px; color: #777;">${item.prix.toFixed(2)} € × ${item.quantite}</div>
+                        </div>
+                        <div>
+                            <span style="font-weight: bold;">${(item.prix * item.quantite).toFixed(2)} €</span>
+                            <button onclick="supprimerDuPanier('${item.id}')" style="margin-left: 10px; background: none; border: none; color: #ff4444; cursor: pointer;">✕</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartItems.innerHTML = html;
+            
+            // Mettre a jour les totaux
+            subtotalElem.textContent = sousTotal.toFixed(2) + ' €';
+            shippingElem.textContent = fraisPort.toFixed(2) + ' €';
+            totalElem.textContent = total.toFixed(2) + ' €';
+        }
+        
+        function supprimerDuPanier(id) {
+            panier = panier.filter(item => item.id !== id);
+            localStorage.setItem('loveMonBijouPanier', JSON.stringify(panier));
+            mettreAJourCompteurPanier();
+            mettreAJourPanierAffichage();
+            afficherNotification('🗑️ Article supprimé du panier');
+        }
+        
+        function mettreAJourCompteurPanier() {
+            const countElem = document.getElementById('cartCount');
+            if (countElem) {
+                const totalItems = panier.reduce((total, item) => total + item.quantite, 0);
+                countElem.textContent = totalItems;
+            }
+        }
+        
+        function afficherNotification(message) {
+            // Creer la notification
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: #5a4634;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 5px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: notificationSlide 3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Ajouter l'animation CSS
+            if (!document.querySelector('#notification-style')) {
+                const style = document.createElement('style');
+                style.id = 'notification-style';
+                style.textContent = `
+                    @keyframes notificationSlide {
+                        0% { opacity: 0; transform: translateX(100px); }
+                        10% { opacity: 1; transform: translateX(0); }
+                        90% { opacity: 1; transform: translateX(0); }
+                        100% { opacity: 0; transform: translateX(100px); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Supprimer apres 3 secondes
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // ==================== EXPOSER LES FONCTIONS ====================
+        window.voirDetails = voirDetails;
+        window.ajouterAuPanier = ajouterAuPanier;
+        window.supprimerDuPanier = supprimerDuPanier;
+    </script>
+</body>
+</html>

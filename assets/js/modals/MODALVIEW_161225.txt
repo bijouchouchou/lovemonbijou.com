@@ -1,0 +1,99 @@
+// assets/js/modals/modalView.js
+import { ModalBase } from "./modalBase.js";
+import CONFIG from "../core/config.js";
+
+export class ProductModal extends ModalBase {
+  constructor(id = "product-modal") {
+    super(id);
+  }
+
+  showProduct(p) {
+    if (!p || !p.id) {
+      console.error("showProduct: produit invalide", p);
+      return;
+    }
+
+    this.setContent(this.render(p));
+    this.open();
+    this.bindEvents(p);
+  }
+
+  render(p) {
+    const sizes = p.available_sizes || [];
+
+    const sizeOptions = sizes.map(s =>
+      `<option value="${s}">${s}</option>`
+    ).join("");
+
+    return `
+      <div class="modal-product-grid">
+
+        <div class="modal-left">
+          <img src="${p.image}"
+               alt="${p.titleLabel}"
+               onerror="this.src='${CONFIG.placeholder}'">
+        </div>
+
+        <div class="modal-right">
+          <h2 class="modal-title">${p.titleLabel}</h2>
+          <div class="modal-price">${p.price.toFixed(2)} €</div>
+
+          <ul class="modal-details">
+            <li><strong>Type :</strong> ${p.type || "—"}</li>
+            <li><strong>Pierre :</strong>
+              ${p.stone_type || "Sans pierre"}
+              ${p.stone_weight ? ` • ${p.stone_weight.toFixed(3)} ct` : ""}
+            </li>
+            <li><strong>Poids or :</strong>
+              ${p.metal_weight ? p.metal_weight + " g" : "—"}
+            </li>
+            <li><strong>Couleur :</strong> ${p.colorLabel || "—"}</li>
+          </ul>
+
+          ${
+            sizes.length
+              ? `
+                <div class="modal-sizes">
+                  <label>Taille</label>
+                  <select id="modal-size-select">
+                    <option value="">Choisir</option>
+                    ${sizeOptions}
+                  </select>
+                </div>`
+              : `<p>Taille unique</p>`
+          }
+
+          <div class="modal-actions">
+            <button id="modal-add-cart-btn">Ajouter au panier</button>
+            ${
+              p.fabrication_possible
+                ? `<button id="modal-custom-btn">Sur mesure</button>`
+                : ""
+            }
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  bindEvents(p) {
+    const addBtn = document.getElementById("modal-add-cart-btn");
+    const sizeSelect = document.getElementById("modal-size-select");
+
+    if (addBtn) {
+      addBtn.onclick = () => {
+        const size = sizeSelect?.value || null;
+        if (sizeSelect && !size) {
+          alert("Veuillez choisir une taille");
+          return;
+        }
+
+        if (window.addToCart) {
+          window.addToCart(p.id, { ...p, __size: size });
+        }
+
+        this.close();
+      };
+    }
+  }
+}

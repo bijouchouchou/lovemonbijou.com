@@ -1,0 +1,176 @@
+/* ============================================
+   FILTERS.CSS — Love Mon Bijou
+   Style bijouterie chic (EV1)
+   ============================================ */
+
+/* --- Conteneur global filtres --- */
+#event-filters,
+#stone-filters,
+#price-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px auto;
+    max-width: 1100px;
+    justify-content: center;
+}
+
+/* --- Hiérarchie visuelle --- */
+#event-filters {
+    margin-top: 30px;
+}
+
+#stone-filters {
+    margin-top: 10px;
+}
+
+#price-filter {
+    margin-top: 15px;
+}
+
+/* --- Boutons filtres --- */
+.filter-btn {
+    appearance: none;
+    border: 1px solid #d6c3a1;
+    background: #fffdf7;
+    color: #5a4634;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    letter-spacing: 0.02em;
+}
+
+/* --- Hover --- */
+.filter-btn:hover {
+    background: #f3e8d6;
+    border-color: #b18a60;
+    color: #3d2b1f;
+}
+
+/* --- Actif --- */
+.filter-btn.active {
+    background: linear-gradient(135deg, #b18a60, #a6784c);
+    border-color: #a6784c;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(166, 120, 76, 0.35);
+}
+
+/* --- Prix --- */
+#price-filter label {
+    font-size: 0.85rem;
+    color: #5a4634;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0 10px;
+}
+
+#price-filter input[type="number"],
+#price-filter input[type="range"] {
+    accent-color: #b18a60;
+    cursor: pointer;
+}
+
+/* --- Valeurs prix --- */
+#price-filter span {
+    font-weight: 600;
+    color: #3d2b1f;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    #event-filters,
+    #stone-filters,
+    #price-filter {
+        gap: 8px;
+        padding: 0 10px;
+    }
+
+    .filter-btn {
+        font-size: 0.85rem;
+        padding: 7px 14px;
+    }
+}
+/* ============================================
+   PRODUCT COUNTER – STYLE LUXE DISCRET
+============================================ */
+
+.products-counter {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+
+  background: rgba(255, 250, 245, 0.96); /* ivoire */
+  color: #5a4634;                       /* brun luxe */
+  
+  padding: 10px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(184, 150, 76, 0.35);
+
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  opacity: 0.95;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Hover subtil (desktop uniquement) */
+@media (hover: hover) {
+  .products-counter:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+}
+
+/* Animation douce à chaque mise à jour */
+.products-counter.pulse {
+  animation: counterPulse 0.3s ease;
+}
+
+@keyframes counterPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* Mobile : légèrement plus large et centré visuellement */
+@media (max-width: 768px) {
+  .products-counter {
+    right: 50%;
+    transform: translateX(50%);
+    bottom: 16px;
+    font-size: 13px;
+  }
+}
+/* ======================================================
+   FIX INTERACTION PANIER / FILTRES
+   (ANTI SOURIS GRISEE)
+====================================================== */
+
+/* Les filtres restent visibles mais ne capturent plus la souris */
+body.cart-open #event-filters,
+body.cart-open #stone-filters,
+body.cart-open #price-filter {
+  pointer-events: none;
+}
+
+/* Le compteur produits ne doit JAMAIS passer devant le panier */
+body.cart-open .products-counter {
+  pointer-events: none;
+  opacity: 0.6;
+}

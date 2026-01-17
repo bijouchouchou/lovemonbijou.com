@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Paiement réussi 💎 | Bijoux ChoucHou</title>
+  <link rel="stylesheet" href="assets/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <style>
+    body {
+      text-align: center;
+      padding: 80px 20px;
+      background: #fffaf3;
+      color: #5a4634;
+      font-family: "Poppins", sans-serif;
+    }
+    h1 {
+      font-size: 2.2em;
+      color: #b8964c;
+    }
+    p {
+      margin-top: 1em;
+      font-size: 1.1em;
+    }
+    a {
+      display: inline-block;
+      margin-top: 2em;
+      padding: 10px 20px;
+      background: #b8964c;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    a:hover {
+      background: #a5843f;
+    }
+    .success-box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .email-confirmation {
+      background: #f0f8ff;
+      border: 1px solid #b8964c;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="success-box">
+    <h1>Merci pour votre commande ✨</h1>
+    <p>Votre paiement a été confirmé avec succès.</p>
+    
+    <div class="email-confirmation">
+      <p><strong>📧 Email de confirmation envoyé !</strong></p>
+      <p>Un récapitulatif a été envoyé à votre adresse email.</p>
+    </div>
+
+    <p>Votre bijou est maintenant en préparation 🛍️</p>
+    <p>Nous vous contacterons sous 24h pour la livraison.</p>
+
+    <a href="index.html">← Retour à la boutique</a>
+  </div>
+
+  <script>
+    // Initialiser EmailJS
+    emailjs.init("QvP4ltdzywwg7IolM");
+    
+    // Fonction pour envoyer l'email de confirmation
+    <script>
+  // Fonction pour envoyer l'email de confirmation
+  async function sendConfirmation() {
+    const customerEmail = localStorage.getItem('customer_email');
+    const cart = JSON.parse(localStorage.getItem('pending_cart') || '[]');
+    
+    if (customerEmail && cart.length > 0) {
+      try {
+        const total = cart.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
+        const orderDetails = cart.map((item, index) => 
+          `${index + 1}. ${item.titre} carats - ${item.prix.toFixed(2)}€ x ${item.quantite} = ${(item.prix * item.quantite).toFixed(2)}€`
+        ).join('\\n');
+
+        await emailjs.send("service_xafynxq", "template_8xmiwsj", {
+          to_email: customerEmail,
+          to_name: "Client",
+          from_name: "Bijoux ChoucHou",
+          reply_to: "bijouchouchou74@gmail.com",
+          order_details: orderDetails,
+          total: total.toFixed(2),
+          order_date: new Date().toLocaleDateString('fr-FR')
+        });
+        
+        console.log("✅ Email de confirmation envoyé à", customerEmail);
+        
+    // Dans sendConfirmation(), apres l'envoi d'email reussi :
+console.log("✅ Email de confirmation envoyé à", customerEmail);
+
+// ⭐⭐ NETTOYAGE ROBUSTE ⭐⭐
+localStorage.removeItem('customer_email');
+localStorage.removeItem('pending_cart');
+
+// Deux methodes pour vider le panier (au cas ou)
+localStorage.removeItem('cart');
+localStorage.setItem('cart', '[]');
+
+console.log("✅ Données nettoyées et panier vidé");
+  
+  // Envoyer l'email au chargement de la page
+  window.addEventListener('load', sendConfirmation);
+  
+  // Redirection automatique apres 8 secondes
+  setTimeout(() => {
+    window.location.href = "index.html";
+  }, 8000);
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Panier - Bijoux ChouChou</title>
+    <link rel="stylesheet" href="assets/style.css">
+
+    <style>
+        body {
+            background: #fffaf3;
+            font-family: "Poppins", sans-serif;
+            color: #5a4634;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 40px;
+            color: #b8964c;
+        }
+
+        .cart-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.07);
+        }
+
+        .total-box {
+            margin-top: 25px;
+            padding: 20px;
+            background: #fff5df;
+            border-radius: 10px;
+            font-size: 1.1em;
+        }
+
+        .pay-buttons {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        button.pay {
+            padding: 14px 20px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #d4af37, #b8860b);
+            color: white;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        button.pay:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(135deg, #b8860b, #8b6c00);
+        }
+
+        #paypal-button-container,
+        #alma-container {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>BIJOUX CHOUCHOU</h1>
+    <nav>
+        <a href="index.html">← Retour au catalogue</a>
+    </nav>
+</header>
+
+<main>
+    <div class="cart-page">
+        <h2>MON PANIER</h2>
+
+        <div id="cart-content" class="cart-container"></div>
+
+        <div class="total-box" id="total-box">
+            Calcul du total…
+        </div>
+
+        <div class="pay-buttons">
+
+            <!-- STRIPE -->
+            <button id="stripe-pay" class="pay">💳 Payer avec Stripe</button>
+
+            <!-- PAYPAL -->
+            <div id="paypal-button-container"></div>
+
+            <!-- ALMA -->
+            <div id="alma-container"></div>
+
+        </div>
+    </div>
+</main>
+
+<script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
+
+<script src="assets/script.js"></script>
+</body>
+</html>

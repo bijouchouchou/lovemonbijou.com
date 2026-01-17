@@ -1,0 +1,171 @@
+// assets/js/modals/modalView.js - VERSION AVEC STOP PROPAGATION
+import { ModalBase } from './modalBase.js';
+import { theme } from '../core/theme.js';
+
+export class ProductModal extends ModalBase {
+    constructor(modalId = 'productModal') {
+        super(modalId, {
+            bgColor: theme.cream.light,
+            borderColor: theme.gold.medium,
+            textColor: theme.brown.dark
+        });
+    }
+
+    showProduct(product) {
+        if (!product) {
+            console.error('Produit non défini');
+            return;
+        }
+
+        const content = this.createProductContent(product);
+        // false = ne pas empêcher automatiquement la propagation
+        this.setContent(content, false);
+        this.open();
+        
+        // Gérer les événements spécifiques
+        this.initProductEvents(product);
+    }
+
+    createProductContent(product) {
+        return `
+            <div class="product-modal-content" style="
+                background: ${theme.cream.light};
+                border-radius: 12px;
+                padding: 25px;
+                max-width: 500px;
+                margin: 50px auto;
+                border: 1px solid ${theme.border};
+                box-shadow: 0 4px 20px ${theme.shadow.medium};
+                position: relative;
+            ">
+                <div style="display: flex; gap: 25px; margin-bottom: 25px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <img src="${product.image || 'https://via.placeholder.com/300x300/E0BFB8/FFFFFF?text=Love+Mon+Bijou'}" 
+                             alt="${product.name}" 
+                             style="width: 100%; border-radius: 8px; border: 2px solid ${theme.gold.light};">
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <h3 style="
+                            color: ${theme.brown.dark};
+                            margin-bottom: 10px;
+                            font-size: 1.4rem;
+                            font-weight: 700;
+                        ">${product.name}</h3>
+                        
+                        ${product.category ? `
+                        <div style="margin-bottom: 15px;">
+                            <span style="
+                                background: ${theme.gold.light};
+                                color: white;
+                                padding: 4px 12px;
+                                border-radius: 20px;
+                                font-size: 0.9rem;
+                                font-weight: 600;
+                            ">${product.category}</span>
+                        </div>
+                        ` : ''}
+                        
+                        <p style="
+                            color: ${theme.brown.light};
+                            margin-bottom: 20px;
+                            line-height: 1.5;
+                        ">${product.description || 'Description non disponible.'}</p>
+                        
+                        <div style="
+                            background: ${theme.cream.medium};
+                            padding: 15px;
+                            border-radius: 8px;
+                            border: 1px solid ${theme.border};
+                            margin-bottom: 20px;
+                        ">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span style="color: ${theme.brown.dark}; font-weight: 600;">Prix:</span>
+                                <span style="color: ${theme.gold.medium}; font-weight: 700; font-size: 1.2rem;">
+                                    ${product.price ? product.price + '€' : 'N/A'}
+                                </span>
+                            </div>
+                            ${product.material ? `
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span style="color: ${theme.brown.dark}; font-weight: 600;">Matériau:</span>
+                                <span style="color: ${theme.brown.light};">${product.material}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="productAddToCartBtn" style="
+                    width: 100%;
+                    padding: 14px;
+                    background: linear-gradient(to right, ${theme.gold.medium}, ${theme.gold.dark});
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    margin-top: 10px;
+                " data-product-id="${product.id || ''}">
+                    Ajouter au panier
+                </button>
+            </div>
+        `;
+    }
+
+    initProductEvents(product) {
+        setTimeout(() => {
+            const addButton = document.getElementById('productAddToCartBtn');
+            if (addButton) {
+                // Cloner pour supprimer les anciens écouteurs
+                const newButton = addButton.cloneNode(true);
+                addButton.parentNode.replaceChild(newButton, addButton);
+                
+                // Ajouter au panier
+                newButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.addToCart(product);
+                    
+                    // Feedback visuel
+                    newButton.textContent = 'Ajouté ✓';
+                    newButton.style.background = theme.states.success;
+                    newButton.disabled = true;
+                    
+                    setTimeout(() => {
+                        newButton.textContent = 'Ajouter au panier';
+                        newButton.style.background = `linear-gradient(to right, ${theme.gold.medium}, ${theme.gold.dark})`;
+                        newButton.disabled = false;
+                    }, 1500);
+                });
+                
+                // Effet hover
+                newButton.addEventListener('mouseenter', () => {
+                    if (!newButton.disabled) {
+                        newButton.style.transform = 'translateY(-2px)';
+                        newButton.style.boxShadow = `0 4px 12px ${theme.shadow.medium}`;
+                    }
+                });
+                
+                newButton.addEventListener('mouseleave', () => {
+                    newButton.style.transform = 'translateY(0)';
+                    newButton.style.boxShadow = 'none';
+                });
+            }
+        }, 100);
+    }
+
+    addToCart(product) {
+        console.log('Ajout au panier:', product);
+        
+        // Émettre un événement personnalisé
+        const event = new CustomEvent('productAddedToCart', { 
+            detail: { product },
+            bubbles: true 
+        });
+        
+        if (this.modal) {
+            this.modal.dispatchEvent(event);
+        }
+    }
+}

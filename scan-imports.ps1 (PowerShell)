@@ -1,0 +1,9 @@
+Get-ChildItem -Path "./assets/js" -Recurse -Filter "*.js" | ForEach-Object {
+    $path = $_.FullName
+    $content = Get-Content $path -Raw
+    if ($content -match "cartCore") {
+        Write-Host "⚠️ Trouvé dans : $path"
+        Select-String -Path $path -Pattern "cartCore" -Context 0,2
+        Write-Host ""
+    }
+}

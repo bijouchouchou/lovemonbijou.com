@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Commande Confirmée 💎 | Love Mon Bijou</title>
+
+    <link rel="stylesheet" href="assets/style.css" />
+<script type="module" src="assets/js/success.js"></script>
+
+    <style>
+        body {
+            background: #fffaf3;
+            color: #5a4634;
+            font-family: "Poppins", sans-serif;
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+
+        .success-container {
+            max-width: 650px;
+            margin: 80px auto;
+            background: white;
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 4.2em;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            color: #b8964c;
+            margin-bottom: 20px;
+        }
+
+        .commande-details {
+            background: #fff5df;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .success-message {
+            margin-top: 15px;
+            font-size: 1.15em;
+        }
+
+        .success-actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #d4af37, #b8860b);
+            padding: 12px 26px;
+            border-radius: 10px;
+            color: white !important;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(212,175,55,0.35);
+            transition: 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(135deg, #b8860b, #8b6c00);
+        }
+
+        .btn-outline {
+            padding: 12px 26px;
+            border-radius: 10px;
+            background: white;
+            border: 2px solid #b8964c;
+            color: #b8964c;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-outline:hover {
+            background: #b8964c;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main>
+        <div class="success-container">
+
+            <div class="success-icon">✨</div>
+
+            <h1>Commande Confirmée !</h1>
+
+            <div id="commandeDetails" class="commande-details">
+                <p>Chargement des détails de votre commande...</p>
+            </div>
+
+            <div class="success-message">
+                <p>Un email de confirmation vous a été envoyé 📩</p>
+                <p><strong>Merci pour votre confiance 💛</strong></p>
+            </div>
+
+            <div class="success-actions">
+                <a href="index.html" class="btn-primary">← Retour à la boutique</a>
+                <button onclick="window.print()" class="btn-outline">Imprimer</button>
+            </div>
+
+        </div>
+    </main>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+
+    const box = document.getElementById("commandeDetails");
+
+    if (!sessionId) {
+        box.innerHTML = "<p><strong>Erreur :</strong> aucune session Stripe détectée.</p>";
+        return;
+    }
+
+    box.innerHTML = `
+        <p>🔍 Récupération des informations...</p>
+    `;
+
+    try {
+        // → OPTION : si ton backend expose /retrieve-session
+        const response = await fetch(`/retrieve-session?session_id=${sessionId}`);
+        
+        if (!response.ok) throw new Error("Impossible de récupérer la commande");
+
+        const data = await response.json();
+
+        box.innerHTML = `
+            <p><strong>Numéro de commande : </strong>${data.session.id}</p>
+            <p><strong>Montant payé : </strong>${(data.session.amount_total / 100).toFixed(2)} €</p>
+            <p><strong>Email client : </strong>${data.session.customer_details.email}</p>
+            <p><strong>Date : </strong>${new Date().toLocaleDateString("fr-FR")}</p>
+        `;
+    }
+    catch (err) {
+        console.error(err);
+        box.innerHTML = `
+            <p><strong>Commande validée.</strong></p>
+            <p>(Résumé non disponible, mais votre paiement est bien confirmé ✔️)</p>
+        `;
+    }
+});
+</script>
+
+</body>
+</html>

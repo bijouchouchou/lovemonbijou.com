@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔧 Fabrication - Commande</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333; min-height: 100vh;
+        }
+        .container {
+            max-width: 600px; margin: 0 auto;
+            background: rgba(255,255,255,0.95); padding: 30px;
+            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .success { 
+            background: #d4edda; color: #155724; padding: 15px; 
+            border-radius: 8px; margin: 15px 0; text-align: center;
+        }
+        .btn {
+            padding: 12px 20px; margin: 10px 5px; border: none; 
+            border-radius: 6px; cursor: pointer; font-weight: bold;
+        }
+        .btn-primary { background: #007acc; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Commande de Fabrication</h1>
+        
+        <div class="success">
+            <h2>✅ SUCCÈS !</h2>
+            <p>La fabrication fonctionne correctement</p>
+            <p><strong>Page: fabrication.html</strong></p>
+        </div>
+
+        <div id="productInfo">
+            <h3>Informations produit:</h3>
+            <p id="productDetails">Chargement...</p>
+        </div>
+
+        <form id="fabricationForm">
+            <div style="margin: 15px 0;">
+                <label><strong>Quantité:</strong></label>
+                <input type="number" value="1" min="1" max="10" style="padding: 8px; margin-left: 10px; width: 80px;">
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label><strong>Instructions:</strong></label><br>
+                <textarea rows="4" style="width: 100%; padding: 8px; margin-top: 5px;" placeholder="Notes pour l'atelier..."></textarea>
+            </div>
+            
+            <button type="button" class="btn btn-primary" onclick="submitFabrication()">
+                📧 Envoyer la commande
+            </button>
+        </form>
+
+        <button class="btn btn-secondary" onclick="goBack()" style="margin-top: 20px;">
+            ← Retour à la boutique
+        </button>
+
+        <div id="result" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        // Recuperer le parametre produit de l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productRef = urlParams.get('product') || urlParams.get('ref') || 'Non spécifié';
+        
+        document.getElementById('productDetails').innerHTML = 
+            `<strong>Référence:</strong> ${productRef}<br>
+             <strong>Date:</strong> ${new Date().toLocaleString()}`;
+
+        function submitFabrication() {
+            document.getElementById('result').innerHTML = 
+                '<div class="success">✅ Commande envoyée à l\'atelier !<br>Vous serez contacté sous 48h.</div>';
+            
+            console.log('📧 Commande fabrication envoyée pour:', productRef);
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        console.log('🔧 fabrication.html chargé - Produit:', productRef);
+    </script>
+</body>
+</html>

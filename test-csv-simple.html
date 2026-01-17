@@ -1,0 +1,17 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>
+<h3>Test CSV direct depuis data/products.csv</h3>
+<div id="output">Test...</div>
+<script>
+fetch('data/products.csv')
+    .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
+    .then(text => {
+        document.getElementById('output').innerHTML = 
+            '<span style="color:green">✓ CSV chargé</span><br>' +
+            'Lignes : ' + text.split('\n').length + '<br>' +
+            'Première ligne : ' + text.split('\n')[0];
+    })
+    .catch(e => {
+        document.getElementById('output').innerHTML = 
+            '<span style="color:red">❌ ' + e + '</span>';
+    });
+</script></body></html>

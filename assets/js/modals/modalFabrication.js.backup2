@@ -1,0 +1,104 @@
+// assets/js/modals/modalFabrication.js - VERSION SIMPLIFIÉE
+import { ModalBase } from './modalBase.js';
+import { theme } from '../core/theme.js';
+
+export class FabricationModal extends ModalBase {
+    constructor(modalId = 'fabricationModal') {
+        super(modalId, {
+            bgColor: theme.cream.medium,
+            borderColor: theme.gold.dark,
+            textColor: theme.brown.dark
+        });
+        
+        // S'assurer que la modale existe
+        if (!this.modal) {
+            console.error('Impossible de créer la modale fabrication');
+        }
+    }
+
+    showFabricationInfo() {
+        console.log('Ouverture modale fabrication');
+        
+        const content = `
+            <div style="
+                background: ${theme.cream.light};
+                border-radius: 12px;
+                padding: 25px;
+                max-width: 600px;
+                margin: 50px auto;
+                border: 2px solid ${theme.gold.dark};
+                box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+                position: relative;
+            ">
+                <h2 style="
+                    color: ${theme.gold.dark};
+                    text-align: center;
+                    margin-bottom: 25px;
+                    font-size: 1.6rem;
+                    border-bottom: 2px solid ${theme.gold.light};
+                    padding-bottom: 10px;
+                    font-weight: 700;
+                ">
+                    ♡ Notre Savoir-Faire Artisanal ♡
+                </h2>
+                
+                <div style="margin-bottom: 20px;">
+                    <p style="color: ${theme.brown.light}; line-height: 1.6; margin-bottom: 15px;">
+                        Tous nos bijoux sont <strong style="color: ${theme.gold.dark}">conçus et fabriqués en France</strong>, 
+                        dans nos ateliers de Paris et Lyon.
+                    </p>
+                    
+                    <p style="color: ${theme.brown.light}; line-height: 1.6; margin-bottom: 15px;">
+                        Nous utilisons exclusivement des <strong style="color: ${theme.gold.dark}">matériaux nobles</strong> : 
+                        or 18 carats, argent 925, or rose, et pierres précieuses certifiées.
+                    </p>
+                    
+                    <p style="color: ${theme.brown.light}; line-height: 1.6;">
+                        Engagement pour une <strong style="color: ${theme.gold.dark}">joaillerie responsable</strong> : 
+                        or recyclé, pierres sourcées éthiquement et emballages écologiques.
+                    </p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px dashed ${theme.border};">
+                    <button id="closeFabricationBtn" style="
+                        padding: 12px 30px;
+                        background: ${theme.gold.medium};
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        font-size: 1rem;
+                        transition: all 0.3s ease;
+                    ">
+                        Compris
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        this.setContent(content);
+        this.open();
+        
+        // Ajouter l'événement pour le bouton de fermeture
+        setTimeout(() => {
+            const closeBtn = document.getElementById('closeFabricationBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.close();
+                });
+                
+                // Effet hover
+                closeBtn.addEventListener('mouseenter', () => {
+                    closeBtn.style.background = theme.gold.dark;
+                    closeBtn.style.transform = 'translateY(-2px)';
+                });
+                
+                closeBtn.addEventListener('mouseleave', () => {
+                    closeBtn.style.background = theme.gold.medium;
+                    closeBtn.style.transform = 'translateY(0)';
+                });
+            }
+        }, 100);
+    }
+}

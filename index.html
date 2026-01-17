@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Mon Bijou</title>
+
+    <!-- ==========================
+         CSS
+    =========================== -->
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Mon Bijou</title>
+
+    <!-- CSS principal -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- CSS filtres -->
+    <link rel="stylesheet" href="assets/css/filters.css">
+	<link rel="stylesheet" href="assets/css/cart.css">
+	<link rel="stylesheet" href="assets/css/style-modals.css">
+
+    
+
+    <link rel="icon" href="assets/images/favicon.png">
+</head>
+
+
+    <!-- ==========================
+         HEADER
+    =========================== -->
+  <header class="header">
+    <div class="header-left">
+        <h1 class="site-title">Love Mon Bijou</h1>
+        <div class="cart-icon">
+            🛒 <span class="cart-count">8</span>
+        </div>
+    </div>
+</header>
+
+<!-- PROMO SLIDER SAISONNIER -->
+<div id="promo-bar">
+    <div id="promoMessage"></div>
+</div>
+
+<main>
+    ...
+</main>
+<div id="promo-bar">
+    <div id="promoMessage"></div>
+</div>
+
+
+    <!-- ==========================
+         MAIN CONTENT
+    =========================== -->
+    <main>
+
+    <!-- ==========================
+         FILTERS
+    =========================== -->
+    <section id="filters" style="margin-bottom:20px;">
+
+        <!-- Event filters -->
+        <div id="event-filters"></div>
+<div id="products-count"></div>
+
+        <!-- Stone type filters -->
+        <div id="stone-filters" style="margin-top:10px;"></div>
+
+        <!-- Price filter -->
+        <div id="price-filter" style="margin-top:10px;"></div>
+
+    </section>
+
+    <!-- ==========================
+         PRODUCTS GRID
+    =========================== -->
+    <div id="products-wrapper">
+        <div id="products-container"></div>
+    </div>
+
+</main>
+
+
+    <!-- ==========================
+         MODALS SYSTEM (EV1)
+         JS needs these empty containers
+    =========================== -->
+   <div id="product-modal" class="modal">
+    <div class="modal-content"></div>
+    <button class="close-modal">×</button>
+</div>
+
+<div id="fabrication-modal" class="modal">
+    <div class="modal-content"></div>
+    <button class="close-modal">×</button>
+</div>
+
+
+    <!-- ==========================
+         CSV WARNING MODAL (legacy)
+    =========================== -->
+    <div id="csvWarningModal" class="slide-modal-overlay">
+        <div class="slide-modal-box">
+            <button class="slide-modal-close">×</button>
+
+            <h2>⚠️ Problèmes détectés</h2>
+            <p>Certains produits comportent des valeurs manquantes ou incorrectes.</p>
+
+            <ul id="csvWarningList"></ul>
+
+            <button id="csvWarningOk" class="slide-modal-ok">Compris</button>
+        </div>
+    </div>
+
+    <!-- ==========================
+         CART PANEL (auto-created)
+         CartCore creates it dynamically
+    =========================== -->
+
+    <!-- ==========================
+         JAVASCRIPT (MODULE)
+    =========================== -->
+    <script type="module" src="assets/js/main.js"></script>
+
+</body>
+</html>

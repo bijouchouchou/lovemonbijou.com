@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Love Mon Bijou</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* Styles de test minimalistes */
+        .test-message {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px;
+            text-align: center;
+        }
+        .test-success {
+            color: green;
+            font-weight: bold;
+        }
+        .test-error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">LOVE MON BIJOU - TEST</div>
+        <div class="cart-icon">🛒 <span class="cart-count">0</span></div>
+    </header>
+    
+    <main class="page-container">
+        <div id="test-output" class="test-message">
+            <h2>Test en cours...</h2>
+            <p>Vérification du chargement JavaScript</p>
+        </div>
+        
+        <div id="products-container" class="products-grid">
+            <!-- Rempli par JavaScript -->
+        </div>
+    </main>
+    
+    <footer class="footer">
+        <p>Test de chargement JS - Love Mon Bijou</p>
+    </footer>
+    
+    <!-- CHARGEMENT DES SCRIPTS DANS L'ORDRE -->
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/utils.js"></script>
+    <script src="assets/js/core/state.js"></script>
+    <script src="assets/js/main.js"></script>
+    
+    <script>
+        // Test supplementaire
+        console.log("TEST DIRECT: Vérification globale");
+        
+        // Verifier que tout est charge
+        setTimeout(function() {
+            const output = document.getElementById("test-output");
+            if (output) {
+                if (typeof $ !== "undefined" && typeof state !== "undefined") {
+                    output.innerHTML = `
+                        <h2 class="test-success">✅ TEST RÉUSSI !</h2>
+                        <p>Tous les fichiers JavaScript sont correctement chargés.</p>
+                        <p>Fonctions disponibles:</p>
+                        <ul>
+                            <li>$(): ${typeof $}</li>
+                            <li>state: ${typeof state}</li>
+                            <li>CONFIG: ${typeof CONFIG}</li>
+                            <li>createEl: ${typeof createEl}</li>
+                        </ul>
+                        <button onclick="location.href='index.html'">Retour au site principal</button>
+                    `;
+                } else {
+                    output.innerHTML = `
+                        <h2 class="test-error">❌ TEST ÉCHOUÉ</h2>
+                        <p>Problème de chargement JavaScript.</p>
+                        <p>Fonctions manquantes:</p>
+                        <ul>
+                            <li>$: ${typeof $}</li>
+                            <li>state: ${typeof state}</li>
+                        </ul>
+                    `;
+                }
+            }
+        }, 500);
+    </script>
+</body>
+</html>

@@ -1,0 +1,413 @@
+ï»¿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Love Mon Bijou</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style-modals.css">
+
+  <!-- Favicon (optionnel) -->
+  <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+
+  <!-- ==========================
+        PROMOTION
+  =========================== -->
+  <div class="promo-slider">
+    <span id="promoMessage" class="promo-message">Chargement...</span>
+  </div>
+
+  <!-- ==========================
+        HEADER
+  =========================== -->
+  <header class="header">
+    <div class="logo">LOVE MON BIJOU</div>
+
+    <div class="cart-icon" id="openCartBtn">
+      Ã°Å¸â€ºâ€™ <span id="cartCount" class="cart-count">0</span>
+    </div>
+  </header>
+
+  <!-- ==========================
+        CONTENEUR PRINCIPAL
+  =========================== -->
+  <main class="page-container">
+    
+    <!-- ==========================
+          FILTRES AVANCÃƒâ€°S (nouveau)
+    =========================== -->
+    <div id="filters-container"></div>
+    
+    <!-- ==========================
+          COMPTEUR PRODUITS (nouveau)
+    =========================== -->
+    <div id="productCount" class="product-counter"></div>
+
+    <!-- ==========================
+          GRILLE PRODUITS
+    =========================== -->
+    <div id="products-container" class="products-grid"></div>
+    
+    <!-- Ancien conteneur (maintenu pour compatibilitÃƒÂ©) -->
+    <div id="product-list" class="products-grid" style="display:none;"></div>
+
+  </main>
+
+  <!-- ==========================
+        PANIER LATÃƒâ€°RAL
+  =========================== -->
+  <aside id="cart-panel" class="cart-panel">
+    <button id="closeCartBtn" class="close-cart">Ãƒâ€”</button>
+
+    <h2>Votre panier</h2>
+
+    <div class="cart-items">
+      <!-- Les articles du panier seront ajoutÃƒÂ©s ici dynamiquement -->
+      <div class="cart-item" style="display: none;">
+        <!-- Template pour les articles du panier -->
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <div class="cart-subtotal">Sous-total : <span class="value">0 Ã¢â€šÂ¬</span></div>
+      <div class="cart-shipping">Frais de port : <span class="value">0 Ã¢â€šÂ¬</span></div>
+      <div class="cart-total">Total : <strong class="value">0 Ã¢â€šÂ¬</strong></div>
+    </div>
+
+    <div class="checkout-buttons">
+      <button id="btn-checkout-stripe" class="checkout-btn stripe">Payer par Carte</button>
+      <button id="btn-checkout-paypal" class="checkout-btn paypal">PayPal</button>
+      <button id="btn-checkout-alma" class="checkout-btn alma">3x Ã¢â‚¬â€œ Alma</button>
+    </div>
+  </aside>
+
+  <!-- ==========================
+        MODALES
+        (Conteneur vide - rempli par JavaScript)
+  =========================== -->
+  <div id="modal-container"></div>
+
+  <!-- ==========================
+        MODALE ERREUR CSV
+        (Maintenue pour compatibilitÃƒÂ©)
+  =========================== -->
+  <div id="csvWarningModal" class="slide-modal-overlay">
+    <div class="slide-modal-box">
+      <button class="slide-modal-close">Ãƒâ€”</button>
+
+      <h2>Ã¢Å¡Â Ã¯Â¸Â ProblÃƒÂ¨mes dÃƒÂ©tectÃƒÂ©s</h2>
+      <p>Certains produits comportent des valeurs manquantes ou incorrectes.</p>
+
+      <ul id="csvWarningList"></ul>
+
+      <button id="csvWarningOk" class="slide-modal-ok">Compris</button>
+    </div>
+  </div>
+
+  
+  <!-- ==========================
+        STYLE D'URGENCE POUR MODALES
+  =========================== -->
+  <style>
+    /* Forcer la position des modales */
+    #productModal, #fabricationModal {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: rgba(0,0,0,0.5) !important;
+      z-index: 10000 !important;
+      display: none;
+    }
+    
+    #productModal .modal-content, 
+    #fabricationModal .modal-content {
+      position: relative !important;
+      background: white !important;
+      margin: 50px auto !important;
+      padding: 25px !important;
+      border-radius: 12px !important;
+      max-width: 800px !important;
+      width: 90% !important;
+      border: 2px solid #b18a60 !important;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.2) !important;
+      animation: modalSlideIn 0.3s ease !important;
+    }
+    
+    @keyframes modalSlideIn {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    /* Bouton fermer */
+    #productModal .close-modal,
+    #fabricationModal .close-modal {
+      position: absolute !important;
+      top: 15px !important;
+      right: 15px !important;
+      background: none !important;
+      border: none !important;
+      font-size: 2rem !important;
+      color: #5a4634 !important;
+      cursor: pointer !important;
+      z-index: 10001 !important;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      #productModal .modal-content, 
+      #fabricationModal .modal-content {
+        margin: 20px auto !important;
+        width: 95% !important;
+        padding: 20px !important;
+      }
+    }
+  </style>
+<!-- ==========================
+        FOOTER
+  =========================== -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="contact.html">Contact</a>
+      <a href="guide-tailles.html">Guide des tailles</a>
+      <a href="ethique.html">Nos engagements</a>
+      <a href="cgv.html">CGV</a>
+      <a href="mentions-legales.html">Mentions lÃƒÂ©gales</a>
+    </div>
+    <p>Ã‚Â© 2025 Love Mon Bijou Ã¢â‚¬â€ Tous droits rÃƒÂ©servÃƒÂ©s</p>
+  </footer>
+
+  <!-- ==========================
+        SCRIPTS MODULAIRES ES6
+        (Remplace l'ancien script.js)
+  =========================== -->
+  <script src="assets/js/fix-modals.js"></script>
+  <script type="module" src="assets/js/main.js"></script>
+
+  <!-- Script de compatibilitÃƒÂ© pour anciens navigateurs (optionnel) -->
+  <script nomodule>
+    alert("Votre navigateur ne supporte pas les modules ES6. Veuillez utiliser un navigateur moderne.");
+  </script>
+
+</body>
+</html>
+
+    <!-- ==========================
+          GRILLE PRODUITS
+    =========================== -->
+    <div class="products-grid" id="productsGrid">
+      <div class="loading-message">
+        <p>Chargement de nos crÃ©ations...</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==========================
+        PANIER LATÃ‰RAL (existant dans votre CSS)
+  =========================== -->
+  <aside class="cart-panel" id="cartPanel">
+    <div class="cart-header">
+      <h2>Votre panier</h2>
+      <button id="closeCartBtn" class="close-cart">Ã—</button>
+    </div>
+    
+    <div class="cart-items" id="cartItems">
+      <!-- Les articles seront injectÃ©s ici -->
+    </div>
+    
+    <div class="cart-summary">
+      <div class="cart-subtotal">
+        <span>Sous-total</span>
+        <span class="value">0.00 â‚¬</span>
+      </div>
+      <div class="cart-shipping">
+        <span>Frais de port</span>
+        <span class="value">0.00 â‚¬</span>
+      </div>
+      <div class="cart-total">
+        <span>Total</span>
+        <strong>0.00 â‚¬</strong>
+      </div>
+      
+      <!-- CODE PROMO SERA AJOUTÃ‰ AUTOMATIQUEMENT -->
+      <div id="discountFormContainer"></div>
+    </div>
+    
+    <div class="checkout-buttons">
+      <button class="checkout-btn stripe">Payer avec Stripe</button>
+      <button class="checkout-btn paypal">Payer avec PayPal</button>
+      <button class="checkout-btn alma">Payer avec Alma</button>
+    </div>
+  </aside>
+
+  <!-- ==========================
+        MODALES (dÃ©jÃ  dans style-modals.css)
+  =========================== -->
+  <div id="productModal" class="modal">
+    <div class="modal-content">
+      <!-- Contenu dynamique -->
+    </div>
+    <button class="close-modal">Ã—</button>
+  </div>
+  
+  <div id="fabricationModal" class="modal">
+    <div class="modal-content">
+      <!-- Contenu dynamique -->
+    </div>
+    <button class="close-modal">Ã—</button>
+  </div>
+
+  
+  <!-- ==========================
+        STYLE D'URGENCE POUR MODALES
+  =========================== -->
+  <style>
+    /* Forcer la position des modales */
+    #productModal, #fabricationModal {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: rgba(0,0,0,0.5) !important;
+      z-index: 10000 !important;
+      display: none;
+    }
+    
+    #productModal .modal-content, 
+    #fabricationModal .modal-content {
+      position: relative !important;
+      background: white !important;
+      margin: 50px auto !important;
+      padding: 25px !important;
+      border-radius: 12px !important;
+      max-width: 800px !important;
+      width: 90% !important;
+      border: 2px solid #b18a60 !important;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.2) !important;
+      animation: modalSlideIn 0.3s ease !important;
+    }
+    
+    @keyframes modalSlideIn {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    /* Bouton fermer */
+    #productModal .close-modal,
+    #fabricationModal .close-modal {
+      position: absolute !important;
+      top: 15px !important;
+      right: 15px !important;
+      background: none !important;
+      border: none !important;
+      font-size: 2rem !important;
+      color: #5a4634 !important;
+      cursor: pointer !important;
+      z-index: 10001 !important;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      #productModal .modal-content, 
+      #fabricationModal .modal-content {
+        margin: 20px auto !important;
+        width: 95% !important;
+        padding: 20px !important;
+      }
+    }
+  </style>
+<!-- ==========================
+        FOOTER
+  =========================== -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="/contact.html">Contact</a>
+      <a href="/livraison.html">Livraison & Retours</a>
+      <a href="/cgv.html">CGV</a>
+      <a href="/confidentialite.html">ConfidentialitÃ©</a>
+      <a href="/fabrication.html" id="showFabrication">Notre Fabrication</a>
+    </div>
+    <p class="copyright">
+      &copy; 2024 Love Mon Bijou - Tous droits rÃ©servÃ©s
+    </p>
+  </footer>
+
+  
+  <!-- Fix encodage et styles panier -->
+  <style>
+    /* Forcer l'encodage UTF-8 pour les caractÃ¨res spÃ©ciaux */
+    body, .cart-panel, .cart-summary, .cart-items {
+      font-family: Arial, sans-serif;
+    }
+    
+    /* S'assurer que les â‚¬ s'affichent correctement */
+    .cart-summary span, .cart-summary strong, .value {
+      font-family: Arial, "Segoe UI", sans-serif;
+    }
+    
+    /* Styles amÃ©liorÃ©s pour le panier */
+    .cart-panel {
+      font-family: Arial, sans-serif !important;
+    }
+    
+    .cart-summary {
+      padding: 20px;
+      background: #fffdf7;
+      border-top: 1px solid #eadfca;
+    }
+    
+    .cart-subtotal, .cart-shipping, .cart-total {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-family: Arial, sans-serif;
+    }
+    
+    .cart-total {
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-top: 2px solid #b18a60;
+      margin-top: 8px;
+      padding-top: 12px;
+    }
+    
+    /* Message panier vide */
+    .cart-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #5a4634;
+    }
+    
+    .cart-empty-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+  </style>
+<!-- ==========================
+        SCRIPTS MODULES ES6
+  =========================== -->
+  <script src="assets/js/fix-modals.js"></script>
+  <script type="module" src="assets/js/main.js"></script>
+  
+  <!-- Live Reload pour dÃ©veloppement -->
+  <script>
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      console.log('Live reload enabled.');
+      // Votre code live reload ici si nÃ©cessaire
+    }
+  </script>
+</body>
+</html>
+
+
+
+

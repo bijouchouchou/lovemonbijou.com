@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Love Mon Bijou</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="assets/style.css">
+
+ 
+</head>
+
+<body>
+
+  <!-- ==========================
+        PROMOTION
+  =========================== -->
+  <div class="promo-slider">
+    <span id="promoMessage" class="promo-message">Chargement...</span>
+  </div>
+
+  <!-- ==========================
+        HEADER
+  =========================== -->
+  <header class="header">
+    <div class="logo">LOVE MON BIJOU</div>
+
+    <div class="cart-icon" id="openCartBtn">
+      🛒 <span id="cartCount" class="cart-count">0</span>
+    </div>
+  </header>
+
+  <!-- ==========================
+        FILTRE eVeNEMENT
+  =========================== -->
+  <div class="filter-bar">
+    <label for="eventFilter" class="filter-label">Événement :</label>
+    <select id="eventFilter">
+      <option value="">Tous les événements</option>
+    </select>
+  </div>
+<!-- ================== BARRE FILTRES COMPLETE ================== -->
+<section class="filters-bar">
+  <input type="text" id="searchInput" placeholder="Rechercher un bijou..." />
+
+  <div class="filters-group">
+    <div>Type de bijoux :</div>
+    <div id="filterBijouxBtns"></div>
+  </div>
+
+  <div class="filters-group">
+    <div>Type de pierres :</div>
+    <div id="filterStonesBtns"></div>
+  </div>
+</section>
+
+  <!-- ==========================
+        GRILLE PRODUITS
+  =========================== -->
+  <main class="page-container">
+    <div id="product-list" class="products-grid"></div>
+  </main>
+<div id="product-list" class="grid products-grid"></div>
+
+  <!-- ==========================
+        PANIER
+  =========================== -->
+  <aside id="cart-panel" class="cart-panel">
+    <button id="closeCartBtn" class="close-cart">×</button>
+
+    <h2>Votre panier</h2>
+
+    <div class="cart-items">
+      <!-- Les articles du panier seront ajoutés ici dynamiquement -->
+      <div class="cart-item" style="display: none;">
+        <!-- Template pour les articles du panier -->
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <div class="cart-subtotal">Sous-total : <span class="value">0 €</span></div>
+      <div class="cart-shipping">Frais de port : <span class="value">0 €</span></div>
+      <div class="cart-total">Total : <strong class="value">0 €</strong></div>
+    </div>
+
+    <div class="checkout-buttons">
+      <button id="btn-checkout-stripe" class="checkout-btn stripe">Payer par Carte</button>
+      <button id="btn-checkout-paypal" class="checkout-btn paypal">PayPal</button>
+      <button id="btn-checkout-alma" class="checkout-btn alma">3x – Alma</button>
+    </div>
+  </aside>
+
+  <!-- ==========================
+        FOOTER
+  =========================== -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="contact.html">Contact</a>
+      <a href="guide-tailles.html">Guide des tailles</a>
+      <a href="ethique.html">Nos engagements</a>
+      <a href="cgv.html">CGV</a>
+      <a href="mentions-legales.html">Mentions légales</a>
+    </div>
+    <p>© 2025 Love Mon Bijou — Tous droits réservés</p>
+  </footer>
+<!-- Modal glissante pour erreurs CSV -->
+<div id="csvWarningModal" class="slide-modal-overlay">
+  <div class="slide-modal-box">
+    <button class="slide-modal-close">×</button>
+
+    <h2>⚠️ Problèmes détectés</h2>
+    <p>Certains produits comportent des valeurs manquantes ou incorrectes.</p>
+
+    <ul id="csvWarningList"></ul>
+
+    <button id="csvWarningOk" class="slide-modal-ok">Compris</button>
+  </div>
+</div>
+ <!-- JS -->
+  <script src="assets/script.js"></script>
+</body>
+</html>
